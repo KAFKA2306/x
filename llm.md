@@ -38,6 +38,7 @@
    ```
 
 5. vLLMコンテナ初回実行
+   https://huggingface.co/settings/tokens/new?tokenType=read
    ```bash
    docker run --gpus all --name vllm -p 8000:8000 --ipc=host \
      -v ~/.cache/huggingface:/root/.cache/huggingface \
@@ -46,7 +47,7 @@
      --model microsoft/Phi-3.5-mini-instruct
    ```
 
-6. vLLMサーバーテスト（別ターミナルで実行）
+7. vLLMサーバーテスト（別ターミナルで実行）
    ```bash
    curl -X POST "http://localhost:8000/v1/chat/completions" \
      -H "Content-Type: application/json" \
