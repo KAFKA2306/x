@@ -36,3 +36,7 @@ twitter-analysis/
 
 ### Tweet Length Distribution By Type
 ![Tweet Length Distribution By Type](/tweet_length_distribution_by_type.png)
+
+### monthly_tweet_activity
+![monthly_tweet_activity](/monthly_tweet_activity.png)
+
