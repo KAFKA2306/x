@@ -49,9 +49,9 @@
 
 7. vLLMサーバーテスト（別ターミナルで実行）
    ```bash
-   curl -X POST "http://localhost:8000/v1/chat/completions" \
-     -H "Content-Type: application/json" \
-     -d '{"model": "microsoft/Phi-3.5-mini-instruct", "messages": [{"role": "user", "content": "Hello!"}]}'
+curl -X POST "http://192.168.92.83:8000/v1/chat/completions" \
+  -H "Content-Type: application/json" \
+  -d '{"model": "microsoft/Phi-3.5-mini-instruct", "messages": [{"role": "user", "content": "Hello!"}]}'
    ```
 
 ## 2回目以降の起動
