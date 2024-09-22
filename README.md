@@ -29,11 +29,11 @@ twitter-analysis/
 ## Sample Visualizations
 
 ### Tweet Length Distribution By Type
-![Tweet Length Distribution By Type](output/tweet_length_distribution_by_type.png)
+![Tweet Length Distribution By Type](/tweet_length_distribution_by_type.png)
 
 ### Tweet Type Proportion By Hour
-![Tweet Type Proportion By Hour](output/tweet_type_proportion_by_hour.png)
+![Tweet Type Proportion By Hour](/tweet_type_proportion_by_hour.png)
 
 ### Tweets By Weekday And Time
-![Tweets By Weekday And Time](output/tweets_by_weekday_and_time.png)
+![Tweets By Weekday And Time](/tweets_by_weekday_and_time.png)
 
