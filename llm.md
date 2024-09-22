@@ -30,8 +30,6 @@
    ```
 4. NVIDIAコンテナツールキットインストール
    ```bash
-   ip addr show eth0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1
-
       distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
    curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
    curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
@@ -42,6 +40,9 @@
 5. vLLMコンテナ初回実行
    https://huggingface.co/settings/tokens/new?tokenType=read
    ```bash
+
+      ip addr show eth0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1
+
    docker run --gpus all --name vllm -p 8000:8000 --ipc=host \
      -v ~/.cache/huggingface:/root/.cache/huggingface \
      --env "HUGGING_FACE_HUB_TOKEN=<your_token>" \
@@ -51,6 +52,9 @@
 
 7. vLLMサーバーテスト（別ターミナルで実行）
    ```bash
+
+      ip addr show eth0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1
+
    curl -X POST "http://192.168.92.83:8000/v1/chat/completions" \
    -H "Content-Type: application/json" \
    -d '{"model": "microsoft/Phi-3.5-mini-instruct", "messages": [{"role": "user", "content": "Hello!"}]}'
