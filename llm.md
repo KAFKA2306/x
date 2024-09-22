@@ -59,6 +59,8 @@
    -d '{"model": "microsoft/Phi-3.5-mini-instruct", "messages": [{"role": "user", "content": "Hello!"}]}'
    ```
 
+curl: (7) Failed to connect to 192.168.92.83 port 8000 after 0 ms: 接続を拒否されました
+
 ## 2回目以降の起動
 
 1. コンテナ起動
