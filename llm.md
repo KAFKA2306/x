@@ -33,9 +33,10 @@
    ```
    
 以下のパッケージには満たせない依存関係があります:
+
  containerd.io : 競合: containerd
+ 
 E: エラー、pkgProblemResolver::Resolve は停止しました。おそらく変更禁止パッケージが原因です。
-kafka@frontier:~$
 
 4. NVIDIAコンテナツールキットのインストール
    ```bash
