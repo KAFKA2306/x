@@ -26,8 +26,14 @@ twitter-analysis/
 2. Execute `feature.py` to generate comprehensive tweet features.
 3. Use `plot.py` to create visualizations.
 
-## Features
+## Sample Visualizations
 
-- Data cleaning and feature extraction
-- Comprehensive tweet analysis (length, type, time patterns)
-- Visualization of tweet distributions and patterns
+### Tweet Length Distribution By Type
+![Tweet Length Distribution By Type](output/tweet_length_distribution_by_type.png)
+
+### Tweet Type Proportion By Hour
+![Tweet Type Proportion By Hour](output/tweet_type_proportion_by_hour.png)
+
+### Tweets By Weekday And Time
+![Tweets By Weekday And Time](output/tweets_by_weekday_and_time.png)
+
