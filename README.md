@@ -1,5 +1,3 @@
-Here's a concise and informative README for the project:
-
 # Twitter Data Analysis Tool
 
 A Python-based tool for extracting, analyzing, and visualizing Twitter data.
