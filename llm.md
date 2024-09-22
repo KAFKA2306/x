@@ -54,7 +54,7 @@
 6. vLLMサーバーのテスト（別ターミナルで実行）
    ```bash
    # <wsl2_ip>は手順2で確認したIPアドレス
-   curl -X POST "http://<wsl2_ip>:8000/v1/chat/completions" \
+   curl -X POST "http://192.168.92.83:8000/v1/chat/completions" \
    -H "Content-Type: application/json" \
    -d '{"model": "microsoft/Phi-3.5-mini-instruct", "messages": [{"role": "user", "content": "Hello!"}]}'
    ```
