@@ -11,7 +11,7 @@ twitter-analysis/
 ├── feature.py     # Generates features from extracted data
 ├── plot.py        # Creates visualizations
 │
-├── output/
+├── data/
 │   ├── tweet_features_comprehensive.csv
 │   ├── tweet_length_distribution_by_type.png
 │   ├── tweet_type_proportion_by_hour.png
