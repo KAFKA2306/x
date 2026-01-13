@@ -1,0 +1,33 @@
+<div class="overflow-x-auto">
+    <h3 class="text-xl font-bold mb-4 text-gray-700">Engagement Efficiency (Avg. Likes + RTs per Tweet)</h3>
+    <p class="text-sm text-gray-500 mb-4">Darker cells indicate higher engagement efficiency. Empty cells mean no tweets
+        sent.</p>
+
+    <div class="inline-block min-w-full">
+        <div class="grid grid-cols-[auto_repeat(24,minmax(30px,1fr))] gap-1">
+            <!-- Header Row (Hours) -->
+            <div class="h-8"></div> <!-- Corner spacer -->
+            {% for i in range(24) %}
+            <div class="text-xs text-center text-gray-500">{{ i }}</div>
+            {% endfor %}
+
+            <!-- Data Rows (Days) -->
+            {% for day, hours in heatmap.items() %}
+            <div class="text-sm font-semibold text-gray-600 pr-2 flex items-center justify-end">{{ day }}</div>
+            {% for i in range(24) %}
+            {% set score = hours.get(i, 0) %}
+            <!-- Simple color scale based on score. Adjust thresholds as needed. -->
+            {% if score > 5 %}
+            <div class="h-8 w-full bg-blue-600 rounded" title="{{ day }} {{ i }}h: {{ score }}"></div>
+            {% elif score > 2 %}
+            <div class="h-8 w-full bg-blue-400 rounded" title="{{ day }} {{ i }}h: {{ score }}"></div>
+            {% elif score > 0 %}
+            <div class="h-8 w-full bg-blue-200 rounded" title="{{ day }} {{ i }}h: {{ score }}"></div>
+            {% else %}
+            <div class="h-8 w-full bg-gray-100 rounded" title="No tweets"></div>
+            {% endif %}
+            {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+</div>

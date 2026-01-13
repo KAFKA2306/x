@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Twitter Analysis Dashboard</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white p-6 rounded shadow">
+        <h2 class="text-xl font-semibold text-gray-700">Total Tweets</h2>
+        <p class="text-4xl font-bold text-blue-600">{{ analysis.total_tweets if analysis else 0 }}</p>
+    </div>
+    <div class="bg-white p-6 rounded shadow">
+        <h2 class="text-xl font-semibold text-gray-700">Original</h2>
+        <p class="text-4xl font-bold text-green-600">{{ analysis.tweets_by_type.original if analysis else 0 }}</p>
+    </div>
+    <div class="bg-white p-6 rounded shadow">
+        <h2 class="text-xl font-semibold text-gray-700">RT / Reply</h2>
+        <p class="text-4xl font-bold text-orange-600">
+            {{ (analysis.tweets_by_type.retweet + analysis.tweets_by_type.reply) if analysis else 0 }}
+        </p>
+    </div>
+</div>
+
+<div class="bg-white p-6 rounded shadow mb-8">
+    <h2 class="text-2xl font-bold mb-4">Audience Insights</h2>
+    <div hx-get="/audience" hx-trigger="load" class="animate-pulse">
+        <div class="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+        <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+    </div>
+</div>
+
+<div class="bg-white p-6 rounded shadow mb-8">
+    <h2 class="text-2xl font-bold mb-4">Best Time to Tweet (Efficiency)</h2>
+    <div hx-get="/efficiency" hx-trigger="load" class="animate-pulse">
+        <div class="h-64 bg-gray-200 rounded w-full"></div>
+    </div>
+</div>
+
+<div class="bg-white p-6 rounded shadow">
+    <h2 class="text-2xl font-bold mb-4">Follower Management</h2>
+    <div hx-get="/graph" hx-trigger="load" class="animate-pulse">
+        <div class="h-32 bg-gray-200 rounded w-full"></div>
+    </div>
+</div>
+{% endblock %}

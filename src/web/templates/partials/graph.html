@@ -1,0 +1,40 @@
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white p-6 rounded shadow border-l-4 border-red-500">
+        <h2 class="text-xl font-semibold text-gray-700">Not Following Back</h2>
+        <p class="text-4xl font-bold text-red-600">{{ graph.stats.non_followers_count }}</p>
+        <p class="text-sm text-gray-500 mt-2">Circleboom: "Non-Followers"</p>
+    </div>
+    <div class="bg-white p-6 rounded shadow border-l-4 border-green-500">
+        <h2 class="text-xl font-semibold text-gray-700">Fans</h2>
+        <p class="text-4xl font-bold text-green-600">{{ graph.stats.fans_count }}</p>
+        <p class="text-sm text-gray-500 mt-2">Follow you, you don't follow back</p>
+    </div>
+    <div class="bg-white p-6 rounded shadow border-l-4 border-blue-500">
+        <h2 class="text-xl font-semibold text-gray-700">Mutuals</h2>
+        <p class="text-4xl font-bold text-blue-600">{{ graph.stats.mutuals_count }}</p>
+        <p class="text-sm text-gray-500 mt-2">Friends</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div>
+        <h3 class="text-lg font-semibold mb-3 text-red-600">Recent Non-Followers (Sample)</h3>
+        <ul class="list-disc pl-5 text-sm">
+            {% for uid in graph.non_followers_sample %}
+            <li class="font-mono text-gray-600">{{ uid }}</li>
+            {% else %}
+            <li class="text-gray-400">All good! Everyone follows back.</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div>
+        <h3 class="text-lg font-semibold mb-3 text-green-600">Recent Fans (Sample)</h3>
+        <ul class="list-disc pl-5 text-sm">
+            {% for uid in graph.fans_sample %}
+            <li class="font-mono text-gray-600">{{ uid }}</li>
+            {% else %}
+            <li class="text-gray-400">No one new.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>

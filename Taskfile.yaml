@@ -1,0 +1,22 @@
+version: '3'
+
+tasks:
+  lint:
+    desc: Lint code using ruff
+    cmds:
+      - uv run ruff check src
+
+  format:
+    desc: Format code using ruff
+    cmds:
+      - uv run ruff format src
+
+  start:
+    desc: Start the Analytics Dashboard
+    cmds:
+      - uv run python -m src.main
+
+  test:
+    desc: Run tests
+    cmds:
+      - echo "No tests implemented yet"

@@ -1,0 +1,48 @@
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div>
+        <h3 class="text-lg font-semibold mb-3 text-indigo-600">Top Replied To</h3>
+        <table class="w-full text-left">
+            <thead>
+                <tr class="border-b">
+                    <th class="py-2">User</th>
+                    <th class="py-2 text-right">Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user, count in stats.top_replied %}
+                <tr class="border-b last:border-0 hover:bg-gray-50">
+                    <td class="py-2">{{ user }}</td>
+                    <td class="py-2 text-right font-mono">{{ count }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="2" class="py-2 text-gray-500">No replies found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div>
+        <h3 class="text-lg font-semibold mb-3 text-green-600">Top Retweeted</h3>
+        <table class="w-full text-left">
+            <thead>
+                <tr class="border-b">
+                    <th class="py-2">User</th>
+                    <th class="py-2 text-right">Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user, count in stats.top_retweeted %}
+                <tr class="border-b last:border-0 hover:bg-gray-50">
+                    <td class="py-2">{{ user }}</td>
+                    <td class="py-2 text-right font-mono">{{ count }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="2" class="py-2 text-gray-500">No retweets found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
