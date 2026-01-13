@@ -1,40 +1,41 @@
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <div class="bg-white p-6 rounded shadow border-l-4 border-red-500">
-        <h2 class="text-xl font-semibold text-gray-700">Not Following Back</h2>
-        <p class="text-4xl font-bold text-red-600">{{ graph.stats.non_followers_count }}</p>
-        <p class="text-sm text-gray-500 mt-2">Circleboom: "Non-Followers"</p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div>
+        <canvas id="followChart" height="180"></canvas>
     </div>
-    <div class="bg-white p-6 rounded shadow border-l-4 border-green-500">
-        <h2 class="text-xl font-semibold text-gray-700">Fans</h2>
-        <p class="text-4xl font-bold text-green-600">{{ graph.stats.fans_count }}</p>
-        <p class="text-sm text-gray-500 mt-2">Follow you, you don't follow back</p>
-    </div>
-    <div class="bg-white p-6 rounded shadow border-l-4 border-blue-500">
-        <h2 class="text-xl font-semibold text-gray-700">Mutuals</h2>
-        <p class="text-4xl font-bold text-blue-600">{{ graph.stats.mutuals_count }}</p>
-        <p class="text-sm text-gray-500 mt-2">Friends</p>
+    <div class="grid grid-cols-3 gap-3">
+        <div class="bg-dark-700/50 rounded-xl p-4 text-center">
+            <p class="text-3xl font-bold text-rose-400">{{ graph.stats.non_followers_count }}</p>
+            <p class="text-xs text-gray-400 mt-1">Not Following Back</p>
+        </div>
+        <div class="bg-dark-700/50 rounded-xl p-4 text-center">
+            <p class="text-3xl font-bold text-emerald-400">{{ graph.stats.fans_count }}</p>
+            <p class="text-xs text-gray-400 mt-1">Fans</p>
+        </div>
+        <div class="bg-dark-700/50 rounded-xl p-4 text-center">
+            <p class="text-3xl font-bold text-sky-400">{{ graph.stats.mutuals_count }}</p>
+            <p class="text-xs text-gray-400 mt-1">Mutuals</p>
+        </div>
     </div>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-    <div>
-        <h3 class="text-lg font-semibold mb-3 text-red-600">Recent Non-Followers (Sample)</h3>
-        <ul class="list-disc pl-5 text-sm">
-            {% for uid in graph.non_followers_sample %}
-            <li class="font-mono text-gray-600">{{ uid }}</li>
-            {% else %}
-            <li class="text-gray-400">All good! Everyone follows back.</li>
-            {% endfor %}
-        </ul>
-    </div>
-    <div>
-        <h3 class="text-lg font-semibold mb-3 text-green-600">Recent Fans (Sample)</h3>
-        <ul class="list-disc pl-5 text-sm">
-            {% for uid in graph.fans_sample %}
-            <li class="font-mono text-gray-600">{{ uid }}</li>
-            {% else %}
-            <li class="text-gray-400">No one new.</li>
-            {% endfor %}
-        </ul>
-    </div>
-</div>
+<script>
+    new Chart(document.getElementById('followChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Followers', 'Following'],
+            datasets: [{
+                data: [{{ graph.stats.total_followers }}, {{ graph.stats.total_following }}],
+        backgroundColor: ['#6366f1', '#8b5cf6'],
+        borderWidth: 0,
+        cutout: '70%'
+    }]
+    },
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom', labels: { color: '#9ca3af', padding: 16 } }
+        }
+    }
+});
+</script>

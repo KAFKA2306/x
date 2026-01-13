@@ -16,8 +16,6 @@ app = FastAPI()
 templates = Jinja2Templates(directory="src/web/templates")
 config = load_config()
 
-config = load_config()
-
 if not os.path.exists(config.input_file):
     tweets = []
     analysis = None

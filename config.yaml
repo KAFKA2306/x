@@ -1,3 +1,20 @@
 input_file: "data/tweets.js"
 output_dir: "output"
 model_name: "gemini-2.5-flash"
+preset: "default"
+
+vrchat_keywords:
+  - "vrchat"
+  - "vrc"
+  - "ワールド"
+  - "アバター"
+  - "avatar"
+  - "world"
+
+photo_keywords:
+  - "写真"
+  - "photo"
+  - "撮影"
+  - "📷"
+  - "📸"
+  - "撮った"

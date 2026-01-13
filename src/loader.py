@@ -2,6 +2,7 @@ import json
 import re
 from datetime import datetime
 
+from src.adapters import parse_archive
 from src.models import Tweet
 
 
@@ -17,9 +18,9 @@ def parse_date(date_str: str) -> datetime:
 
 def load_tweets(file_path: str) -> list[Tweet]:
     with open(file_path, "r", encoding="utf-8") as f:
-        content = f.read().replace("window.YTD.tweets.part0 = ", "")
+        content = f.read()
 
-    raw_tweets = json.loads(content)
+    raw_tweets = parse_archive(content)
     tweets = []
 
     for item in raw_tweets:
@@ -65,12 +66,12 @@ def load_tweets(file_path: str) -> list[Tweet]:
 
     return tweets
 
+
 def load_user_list(input_file: str) -> list[str]:
     with open(input_file, "r", encoding="utf-8") as f:
         content = f.read()
-        content = re.sub(r"window\.YTD\.\w+\.part0\s*=\s*", "", content)
 
-    data = json.loads(content)
+    data = parse_archive(content)
     user_ids = []
     for item in data:
         if "follower" in item:

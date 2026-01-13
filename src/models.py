@@ -18,6 +18,8 @@ class Tweet(BaseModel):
     retweet_count: int = 0
     reply_to_user: str | None = None
     retweeted_user: str | None = None
+    media_count: int = 0
+    has_media: bool = False
 
 
 class InteractionStats(BaseModel):
@@ -42,3 +44,6 @@ class AppConfig(BaseModel):
     input_file: str
     output_dir: str
     model_name: str
+    preset: str = "default"
+    vrchat_keywords: list[str] = []
+    photo_keywords: list[str] = []
