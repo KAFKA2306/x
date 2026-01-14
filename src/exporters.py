@@ -16,6 +16,7 @@ def export_account_scores_to_csv(scores: list[AccountScore]) -> str:
         "retweet_count",
         "mention_count",
         "like_count",
+        "quote_count",
         "user_link",
         "category",
         "is_muted",

@@ -45,6 +45,7 @@ def load_tweets(path: str) -> list[Tweet]:
                 retweeted_user=mentions[0].get("screen_name") if rt and mentions else None,
                 hashtags=[h["text"] for h in ent.get("hashtags", [])],
                 mentions=[m["screen_name"] for m in mentions],
+                urls=[u.get("expanded_url", "") for u in ent.get("urls", [])],
                 mention_user_ids=[m.get("id_str", "") for m in mentions],
                 reply_to_user_id=t.get("in_reply_to_user_id_str"),
                 retweeted_user_id=mentions[0].get("id_str") if rt and mentions else None,

@@ -20,6 +20,7 @@ class Tweet(BaseModel):
     retweeted_user: str | None = None
     hashtags: list[str] = []
     mentions: list[str] = []
+    urls: list[str] = []
     mention_user_ids: list[str] = []
     reply_to_user_id: str | None = None
     retweeted_user_id: str | None = None
@@ -52,6 +53,7 @@ class ScoringWeights(BaseModel):
     retweet: int = 1
     mention: int = 2
     like: int = 2
+    quote: int = 4
 
 
 class AnalyticsLimits(BaseModel):
@@ -100,5 +102,6 @@ class AccountScore(BaseModel):
     retweet_count: int
     mention_count: int
     like_count: int
+    quote_count: int = 0
     category: str = ""
     is_muted: bool = False

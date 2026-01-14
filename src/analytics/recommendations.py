@@ -1,3 +1,4 @@
+import re
 from collections import Counter
 
 from src.models import AccountScore, AppConfig, Like, Tweet
@@ -6,8 +7,9 @@ from src.models import AccountScore, AppConfig, Like, Tweet
 def extract_interactions(
     tweets: list[Tweet], likes: list[Like], account_map: dict[str, str], config: AppConfig
 ) -> tuple[dict[str, Counter], Counter]:
-    ids = {k: Counter() for k in ["reply", "retweet", "mention", "like"]}
+    ids = {k: Counter() for k in ["reply", "retweet", "mention", "like", "quote"]}
     hashtags = Counter()
+    quote_pattern = re.compile(r"(?:twitter|x)\.com/(\w+)/status/\d+")
 
     for t in reversed(tweets):
         if t.reply_to_user_id:
@@ -26,6 +28,15 @@ def extract_interactions(
                 account_map[uid] = sn
         for h in t.hashtags:
             hashtags[h] += 1
+
+        for url in t.urls:
+            m = quote_pattern.search(url)
+            if m:
+                quoted_sn = m.group(1).lower()
+                if quoted_sn not in ("i", "intent"):
+                    sn_to_id = {v.lower(): k for k, v in account_map.items()}
+                    if quoted_sn in sn_to_id:
+                        ids["quote"][sn_to_id[quoted_sn]] += 1
 
     s_to_id = {v: k for k, v in account_map.items()}
     for lt in likes:
@@ -56,7 +67,7 @@ class RecommendationAnalytics:
     def score(self, aid: str) -> int:
         w = self.config.weights
         s = w.follower if aid in self.followers else 0
-        return s + sum(self.counts[k].get(aid, 0) * getattr(w, k) for k in ["reply", "retweet", "mention", "like"])
+        return s + sum(self.counts[k].get(aid, 0) * getattr(w, k) for k in ["reply", "retweet", "mention", "like", "quote"])
 
     def _create(self, aid: str) -> AccountScore:
         s = self.score(aid)
@@ -83,6 +94,7 @@ class RecommendationAnalytics:
             retweet_count=self.counts["retweet"].get(aid, 0),
             mention_count=self.counts["mention"].get(aid, 0),
             like_count=self.counts["like"].get(aid, 0),
+            quote_count=self.counts["quote"].get(aid, 0),
             category=cat,
             is_muted=aid in self.muted,
         )
