@@ -8,7 +8,7 @@ __pycache__/
 .venv/
 env/
 venv/
-
+*lock*
 # Tools
 .ruff_cache/
 .vscode/

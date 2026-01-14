@@ -24,6 +24,29 @@
     </div>
 </div>
 
+<div class="flex gap-4 mb-8 justify-end">
+    <a href="/tweets/download"
+        class="flex items-center gap-2 px-4 py-2 bg-dark-700 hover:bg-dark-600 rounded-lg text-sm text-gray-300 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Download Tweet Data (CSV)
+    </a>
+    <a href="/interactions/download"
+        class="flex items-center gap-2 px-4 py-2 bg-dark-700 hover:bg-dark-600 rounded-lg text-sm text-gray-300 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Download All Interactions (CSV)
+    </a>
+</div>
+
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
     <div class="glass p-6 rounded-2xl">
         <h2 class="text-xl font-semibold mb-4">Tweet Activity</h2>
@@ -66,58 +89,65 @@
             <div class="h-48 bg-dark-700/50 rounded-xl animate-pulse"></div>
         </div>
     </div>
+
+    <div class="glass p-6 rounded-2xl mb-8">
+        <h2 class="text-xl font-semibold mb-4">Follow Management</h2>
+        <div hx-get="/recommendations" hx-trigger="load">
+            <div class="h-48 bg-dark-700/50 rounded-xl animate-pulse"></div>
+        </div>
+    </div>
 </div>
 
-<script>
-    const chartDefaults = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: '#9ca3af' } } },
-        scales: {
-            x: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-            y: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-        }
-    };
+    <script>
+        const chartDefaults = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#9ca3af' } } },
+            scales: {
+                x: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+        };
 
-    {% if analysis %}
-    const weeklyData = {{ analysis.tweets_per_week | tojson }};
-    const labels = Object.keys(weeklyData).slice(-20);
-    const values = labels.map(k => weeklyData[k]);
+        {% if analysis %}
+        const weeklyData = {{ analysis.tweets_per_week | tojson }};
+        const labels = Object.keys(weeklyData).slice(-20);
+        const values = labels.map(k => weeklyData[k]);
 
-    new Chart(document.getElementById('activityChart'), {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Tweets',
-                data: values,
-                backgroundColor: '#6366f1',
-                borderRadius: 4
-            }]
-        },
-        options: { ...chartDefaults, plugins: { legend: { display: false } } }
-    });
+        new Chart(document.getElementById('activityChart'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Tweets',
+                    data: values,
+                    backgroundColor: '#6366f1',
+                    borderRadius: 4
+                }]
+            },
+            options: { ...chartDefaults, plugins: { legend: { display: false } } }
+        });
 
-    new Chart(document.getElementById('typeChart'), {
-        type: 'doughnut',
-        data: {
-            labels: ['Original', 'Retweet', 'Reply'],
-            datasets: [{
-                data: [
-                    {{ analysis.tweets_by_type.original }},
-            {{ analysis.tweets_by_type.retweet }},
+        new Chart(document.getElementById('typeChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Original', 'Retweet', 'Reply'],
+                datasets: [{
+                    data: [
+                        {{ analysis.tweets_by_type.original }},
+                {{ analysis.tweets_by_type.retweet }},
                 {{ analysis.tweets_by_type.reply }}
             ],
-        backgroundColor: ['#10b981', '#f59e0b', '#0ea5e9'],
-        borderWidth: 0
+            backgroundColor: ['#10b981', '#f59e0b', '#0ea5e9'],
+            borderWidth: 0
         }]
     },
-        options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af', padding: 20 } } }
-    }
+            options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af', padding: 20 } } }
+        }
 });
-    {% endif %}
-</script>
-{% endblock %}
+        {% endif %}
+    </script>
+    {% endblock %}

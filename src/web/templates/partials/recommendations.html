@@ -1,0 +1,78 @@
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div>
+        <div class="flex items-center justify-between mb-3">
+            <div>
+                <h3 class="text-sm font-semibold text-rose-400 uppercase tracking-wide">Unfollow Candidates</h3>
+                <p class="text-xs text-gray-500">Low interaction + no follow-back</p>
+            </div>
+            <a href="/recommendations/download" class="text-gray-400 hover:text-white p-1" title="Download CSV">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+            </a>
+        </div>
+        <div class="space-y-2 max-h-96 overflow-y-auto">
+            {% for c in candidates %}
+            <a href="{{ c.user_link }}" target="_blank"
+                class="flex items-center justify-between bg-dark-700/50 hover:bg-dark-600/50 rounded-lg px-3 py-2 transition-colors">
+                <div class="flex flex-col">
+                    <span class="text-gray-200 font-medium text-sm">
+                        {% if c.screen_name != 'unknown' %}@{{ c.screen_name }}{% else %}{{ c.account_id }}{% endif %}
+                    </span>
+                    <div class="flex gap-2 text-xs text-gray-500 mt-1">
+                        <span title="Replies">💬 {{ c.reply_count }}</span>
+                        <span title="Retweets">🔁 {{ c.retweet_count }}</span>
+                        <span title="Mentions">@ {{ c.mention_count }}</span>
+                        <span title="Likes">❤️ {{ c.like_count }}</span>
+                    </div>
+                </div>
+                <span class="text-rose-400 font-mono text-sm" title="Score (lower = less interaction)">{{ c.score
+                    }}</span>
+            </a>
+            {% else %}
+            <p class="text-gray-500 text-sm">No candidates found</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div>
+        <div class="flex items-center justify-between mb-3">
+            <div>
+                <h3 class="text-sm font-semibold text-emerald-400 uppercase tracking-wide">Valuable Mutuals</h3>
+                <p class="text-xs text-gray-500">High interaction + mutual follow</p>
+            </div>
+            <a href="/recommendations/download_mutuals" class="text-gray-400 hover:text-white p-1" title="Download CSV">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+            </a>
+        </div>
+        <div class="space-y-2 max-h-96 overflow-y-auto">
+            {% for m in mutuals %}
+            <a href="{{ m.user_link }}" target="_blank"
+                class="flex items-center justify-between bg-dark-700/50 hover:bg-dark-600/50 rounded-lg px-3 py-2 transition-colors">
+                <div class="flex flex-col">
+                    <span class="text-gray-200 font-medium text-sm">
+                        {% if m.screen_name != 'unknown' %}@{{ m.screen_name }}{% else %}{{ m.account_id }}{% endif %}
+                    </span>
+                    <div class="flex gap-2 text-xs text-gray-500 mt-1">
+                        <span title="Replies">💬 {{ m.reply_count }}</span>
+                        <span title="Retweets">🔁 {{ m.retweet_count }}</span>
+                        <span title="Mentions">@ {{ m.mention_count }}</span>
+                        <span title="Likes">❤️ {{ m.like_count }}</span>
+                    </div>
+                </div>
+                <span class="text-emerald-400 font-mono text-sm" title="Score (higher = more interaction)">{{ m.score
+                    }}</span>
+            </a>
+            {% else %}
+            <p class="text-gray-500 text-sm">No mutuals found</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>

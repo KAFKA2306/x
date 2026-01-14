@@ -12,11 +12,11 @@ tasks:
       - uv run ruff format .
 
   serve:
-    desc: Start the Analytics Dashboard
+    desc: Start the Analytics Dashboard (watches src and data for changes)
     aliases: 
       - dev
     cmds:
-      - uv run python -m src.main
+      - uv run uvicorn src.web.app:app --host 0.0.0.0 --port 8000 --reload --reload-dir src --reload-dir data
 
   test:
     desc: Run tests

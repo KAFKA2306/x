@@ -22,6 +22,9 @@ class Tweet(BaseModel):
     has_media: bool = False
     hashtags: list[str] = []
     mentions: list[str] = []
+    mention_user_ids: list[str] = []
+    reply_to_user_id: str | None = None
+    retweeted_user_id: str | None = None
 
 
 class InteractionStats(BaseModel):
@@ -45,16 +48,56 @@ class TweetAnalysis(BaseModel):
     word_freq: dict[str, int]
 
 
+class ScoringWeights(BaseModel):
+    follower: int = 10
+    reply: int = 3
+    retweet: int = 1
+    mention: int = 2
+    like: int = 2
+
+
+class AnalyticsLimits(BaseModel):
+    tfidf_features: int = 20
+    word_freq: int = 100
+    top_stats: int = 10
+    top_interests: int = 20
+    mutuals: int = 20
+
+
+class FileConfig(BaseModel):
+    tweets: str = "data/tweets.js"
+    follower: str = "data/follower.js"
+    following: str = "data/following.js"
+    like: str = "data/like.js"
+
+
 class AppConfig(BaseModel):
     input_file: str
     output_dir: str
     model_name: str
     preset: str = "default"
+    files: FileConfig = FileConfig()
     vrchat_keywords: list[str] = []
     photo_keywords: list[str] = []
+    stop_words: list[str] = []
+    weights: ScoringWeights = ScoringWeights()
+    limits: AnalyticsLimits = AnalyticsLimits()
 
 
 class Like(BaseModel):
     tweet_id: str
     full_text: str
     expanded_url: str
+    mentions: list[str] = []
+
+
+class AccountScore(BaseModel):
+    account_id: str
+    screen_name: str
+    user_link: str
+    score: int
+    follows_back: bool
+    reply_count: int
+    retweet_count: int
+    mention_count: int
+    like_count: int

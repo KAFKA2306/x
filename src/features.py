@@ -3,10 +3,10 @@ from typing import Counter, List
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-from src.models import Tweet, TweetAnalysis
+from src.models import AppConfig, Tweet, TweetAnalysis
 
 
-def analyze_tweets(tweets: List[Tweet]) -> TweetAnalysis:
+def analyze_tweets(tweets: List[Tweet], config: AppConfig) -> TweetAnalysis:
     df = pd.DataFrame([t.model_dump() for t in tweets])
 
     total_tweets = len(tweets)
@@ -17,13 +17,14 @@ def analyze_tweets(tweets: List[Tweet]) -> TweetAnalysis:
     words = [w for w in all_text.split() if len(w) > 1]
     word_freq = Counter(words)
 
-    vectorizer = TfidfVectorizer(max_features=20, stop_words="english")
-    try:
+    vectorizer = TfidfVectorizer(max_features=config.limits.tfidf_features, stop_words="english")
+
+    if tweets:
         tfidf_matrix = vectorizer.fit_transform([t.full_text for t in tweets])
         feature_names = vectorizer.get_feature_names_out()
         scores = tfidf_matrix.sum(axis=0).tolist()[0]
         top_words = sorted(zip(feature_names, scores), key=lambda x: x[1], reverse=True)
-    except ValueError:
+    else:
         top_words = []
 
     tweets_per_day = df.groupby(df["created_at"].dt.date).size().to_dict()
@@ -49,5 +50,5 @@ def analyze_tweets(tweets: List[Tweet]) -> TweetAnalysis:
         tweets_per_week=tweets_per_week_str,
         tweets_per_hour=tweets_per_hour,
         tweets_by_type=tweets_by_type,
-        word_freq=dict(word_freq.most_common(100)),
+        word_freq=dict(word_freq.most_common(config.limits.word_freq)),
     )

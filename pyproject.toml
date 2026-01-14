@@ -13,6 +13,9 @@ dependencies = [
     "uvicorn",
     "jinja2",
     "python-multipart",
+    "onnxruntime>=1.23.2",
+    "tokenizers>=0.22.2",
+    "numpy>=2.4.1",
 ]
 
 [tool.ruff]
