@@ -18,8 +18,6 @@ class Tweet(BaseModel):
     retweet_count: int = 0
     reply_to_user: str | None = None
     retweeted_user: str | None = None
-    media_count: int = 0
-    has_media: bool = False
     hashtags: list[str] = []
     mentions: list[str] = []
     mention_user_ids: list[str] = []
@@ -102,4 +100,3 @@ class AccountScore(BaseModel):
     mention_count: int
     like_count: int
     category: str = ""
-    last_interaction_date: datetime | None = None

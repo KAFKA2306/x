@@ -5,74 +5,41 @@ from src.models import AccountScore, Tweet
 
 
 def export_account_scores_to_csv(scores: list[AccountScore]) -> str:
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(
-        [
-            "account_id",
-            "screen_name",
-            "score",
-            "follows_back",
-            "reply_count",
-            "retweet_count",
-            "mention_count",
-            "like_count",
-            "user_link",
-            "category",
-        ]
-    )
-
+    out = io.StringIO()
+    w = csv.writer(out)
+    fields = [
+        "account_id",
+        "screen_name",
+        "score",
+        "follows_back",
+        "reply_count",
+        "retweet_count",
+        "mention_count",
+        "like_count",
+        "user_link",
+        "category",
+    ]
+    w.writerow(fields)
     for s in scores:
-        writer.writerow(
-            [
-                s.account_id,
-                s.screen_name,
-                s.score,
-                s.follows_back,
-                s.reply_count,
-                s.retweet_count,
-                s.mention_count,
-                s.like_count,
-                s.user_link,
-                s.category,
-            ]
-        )
-
-    return output.getvalue()
+        w.writerow([getattr(s, f) for f in fields])
+    return out.getvalue()
 
 
 def export_tweets_to_csv(tweets: list[Tweet]) -> str:
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(
-        [
-            "created_at",
-            "full_text",
-            "type",
-            "favorite_count",
-            "retweet_count",
-            "reply_to",
-            "retweeted_user",
-        ]
-    )
-
+    out = io.StringIO()
+    w = csv.writer(out)
+    w.writerow(["created_at", "full_text", "type", "favorite_count", "retweet_count", "reply_to", "retweeted_user"])
     for t in tweets:
-        tweet_type = "original"
-        if t.is_retweet:
-            tweet_type = "retweet"
-        elif t.is_reply:
-            tweet_type = "reply"
-
-        writer.writerow(
+        tp = "retweet" if t.is_retweet else "reply" if t.is_reply else "original"
+        w.writerow(
             [
                 t.created_at.isoformat(),
                 t.full_text,
-                tweet_type,
+                tp,
                 t.favorite_count,
                 t.retweet_count,
                 t.reply_to_user or "",
                 t.retweeted_user or "",
             ]
         )
-
-    return output.getvalue()
+    return out.getvalue()

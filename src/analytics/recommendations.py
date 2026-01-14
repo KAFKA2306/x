@@ -3,49 +3,33 @@ from collections import Counter
 from src.models import AccountScore, AppConfig, Like, Tweet
 
 
-def build_account_map(tweets: list[Tweet]) -> dict[str, str]:
-    account_map = {}
-    for t in tweets:
-        if t.reply_to_user_id and t.reply_to_user:
-            account_map[t.reply_to_user_id] = t.reply_to_user
-
-        if t.retweeted_user_id and t.retweeted_user:
-            account_map[t.retweeted_user_id] = t.retweeted_user
-
-    return account_map
-
-
-def extract_interaction_counts(
+def extract_interactions(
     tweets: list[Tweet], likes: list[Like], account_map: dict[str, str], config: AppConfig
-) -> tuple[Counter[str], Counter[str], Counter[str], Counter[str]]:
-    reply_counts: Counter[str] = Counter()
-    retweet_counts: Counter[str] = Counter()
-    mention_counts: Counter[str] = Counter()
-    like_counts: Counter[str] = Counter()
+) -> tuple[dict[str, Counter], Counter]:
+    counts = {k: Counter() for k in ["reply", "retweet", "mention", "like"]}
+    hashtags = Counter()
 
     for t in tweets:
         if t.reply_to_user_id:
-            reply_counts[t.reply_to_user_id] += 1
+            counts["reply"][t.reply_to_user_id] += 1
             if t.reply_to_user:
                 account_map[t.reply_to_user_id] = t.reply_to_user
-
         if t.retweeted_user_id:
-            retweet_counts[t.retweeted_user_id] += 1
+            counts["retweet"][t.retweeted_user_id] += 1
             if t.retweeted_user:
                 account_map[t.retweeted_user_id] = t.retweeted_user
-
         for uid in t.mention_user_ids:
-            mention_counts[uid] += 1
+            counts["mention"][uid] += 1
+        for h in t.hashtags:
+            hashtags[h] += 1
 
-    screen_name_to_id = {v: k for k, v in account_map.items()}
+    s_to_id = {v: k for k, v in account_map.items()}
+    for lt in likes:
+        for s in lt.mentions:
+            if s in s_to_id:
+                counts["like"][s_to_id[s]] += 1
 
-    for like in likes:
-        for screen_name in like.mentions:
-            if screen_name in screen_name_to_id:
-                uid = screen_name_to_id[screen_name]
-                like_counts[uid] += 1
-
-    return reply_counts, retweet_counts, mention_counts, like_counts
+    return counts, hashtags
 
 
 class RecommendationAnalytics:
@@ -54,115 +38,58 @@ class RecommendationAnalytics:
         config: AppConfig,
         followers: set[str],
         following: set[str],
-        reply_counts: Counter[str],
-        retweet_counts: Counter[str],
-        mention_counts: Counter[str],
-        like_counts: Counter[str],
+        counts: dict[str, Counter],
         account_map: dict[str, str],
     ):
         self.config = config
         self.followers = followers
         self.following = following
-        self.reply_counts = reply_counts
-        self.retweet_counts = retweet_counts
-        self.mention_counts = mention_counts
-        self.like_counts = like_counts
+        self.counts = counts
         self.account_map = account_map
 
-    def score_account(self, account_id: str) -> int:
-        score = 0
-        weights = self.config.weights
+    def score(self, aid: str) -> int:
+        w = self.config.weights
+        s = w.follower if aid in self.followers else 0
+        return s + sum(self.counts[k].get(aid, 0) * getattr(w, k) for k in ["reply", "retweet", "mention", "like"])
 
-        if account_id in self.followers:
-            score += weights.follower
+    def _create(self, aid: str) -> AccountScore:
+        s = self.score(aid)
+        sn = self.account_map.get(aid, "unknown")
+        is_fer, is_fing = aid in self.followers, aid in self.following
 
-        score += self.reply_counts.get(account_id, 0) * weights.reply
-        score += self.retweet_counts.get(account_id, 0) * weights.retweet
-        score += self.mention_counts.get(account_id, 0) * weights.mention
-        score += self.like_counts.get(account_id, 0) * weights.like
-
-        return score
-
-    def _create_account_score(self, account_id: str) -> AccountScore:
-        score = self.score_account(account_id)
-        screen_name = self.account_map.get(account_id, "unknown")
-
-        is_follower = account_id in self.followers
-        is_following = account_id in self.following
-
-        if is_follower and is_following:
-            category = "Mutual" if score > 0 else "Ghost"
-        elif is_follower:
-            category = "Fan"
-        elif is_following:
-            category = "Unfollow Candidate" if score == 0 else "Unrequited"
+        if is_fer and is_fing:
+            cat = "Mutual" if s > 0 else "Ghost"
+        elif is_fer:
+            cat = "Fan"
+        elif is_fing:
+            cat = "Unfollow Candidate" if s == 0 else "Unrequited"
         else:
-            category = "Other"
+            cat = "Other"
 
-        if screen_name != "unknown":
-            user_link = f"https://twitter.com/{screen_name}"
-        else:
-            user_link = f"https://twitter.com/i/user/{account_id}"
-
+        link = f"https://twitter.com/{sn}" if sn != "unknown" else f"https://twitter.com/i/user/{aid}"
         return AccountScore(
-            account_id=account_id,
-            screen_name=screen_name,
-            user_link=user_link,
-            score=score,
-            follows_back=account_id in self.followers,
-            reply_count=self.reply_counts.get(account_id, 0),
-            retweet_count=self.retweet_counts.get(account_id, 0),
-            mention_count=self.mention_counts.get(account_id, 0),
-            like_count=self.like_counts.get(account_id, 0),
-            category=category,
+            account_id=aid,
+            screen_name=sn,
+            user_link=link,
+            score=s,
+            follows_back=is_fer,
+            reply_count=self.counts["reply"].get(aid, 0),
+            retweet_count=self.counts["retweet"].get(aid, 0),
+            mention_count=self.counts["mention"].get(aid, 0),
+            like_count=self.counts["like"].get(aid, 0),
+            category=cat,
         )
 
-    def get_unfollow_candidates(self, limit: int | None = None) -> list[AccountScore]:
-        non_followers = self.following - self.followers
-
-        candidates = []
-        for account_id in non_followers:
-            score = self.score_account(account_id)
-            if score == 0:
-                candidates.append(self._create_account_score(account_id))
-
-        candidates.sort(key=lambda x: x.account_id)
-
-        if limit is not None and limit > 0:
-            return candidates[:limit]
-        return candidates
+    def get_unfollow_candidates(self) -> list[AccountScore]:
+        res = [self._create(aid) for aid in (self.following - self.followers) if self.score(aid) == 0]
+        return sorted(res, key=lambda x: x.account_id)
 
     def get_valuable_mutuals(self, limit: int | None = None) -> list[AccountScore]:
-        mutuals = self.following & self.followers
+        lim = limit or self.config.limits.mutuals
+        res = [self._create(aid) for aid in (self.following & self.followers)]
+        return sorted(res, key=lambda x: x.score, reverse=True)[:lim]
 
-        valuable = []
-        for account_id in mutuals:
-            valuable.append(self._create_account_score(account_id))
-
-        valuable.sort(key=lambda x: x.score, reverse=True)
-
-        if limit is None:
-            limit = self.config.limits.mutuals
-
-        if limit > 0:
-            return valuable[:limit]
-        return valuable
-
-    def get_all_interactions(self, limit: int | None = None) -> list[AccountScore]:
-        all_ids = set()
-        all_ids.update(self.reply_counts.keys())
-        all_ids.update(self.retweet_counts.keys())
-        all_ids.update(self.mention_counts.keys())
-        all_ids.update(self.like_counts.keys())
-        all_ids.update(self.followers)
-        all_ids.update(self.following)
-
-        scores = []
-        for account_id in all_ids:
-            scores.append(self._create_account_score(account_id))
-
-        scores.sort(key=lambda x: x.score, reverse=True)
-
-        if limit is not None and limit > 0:
-            return scores[:limit]
-        return scores
+    def get_all(self, limit: int = 0) -> list[AccountScore]:
+        ids = set(self.followers) | set(self.following) | {i for c in self.counts.values() for i in c}
+        res = sorted([self._create(aid) for aid in ids], key=lambda x: x.score, reverse=True)
+        return res[:limit] if limit > 0 else res
