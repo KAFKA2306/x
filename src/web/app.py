@@ -38,7 +38,9 @@ tweets_interests = analyze_tweets_interests(tweets, config) if tweets else None
 
 if tweets:
     user_map = extract_user_map(config.files.tweets)
-    reply_counts, retweet_counts, mention_counts, like_counts = extract_interaction_counts(tweets, likes, user_map)
+    reply_counts, retweet_counts, mention_counts, like_counts = extract_interaction_counts(
+        tweets, likes, user_map, config
+    )
     recommendation_analytics = RecommendationAnalytics(
         config,
         set(followers),

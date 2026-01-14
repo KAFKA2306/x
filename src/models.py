@@ -101,3 +101,5 @@ class AccountScore(BaseModel):
     retweet_count: int
     mention_count: int
     like_count: int
+    category: str = ""
+    last_interaction_date: datetime | None = None

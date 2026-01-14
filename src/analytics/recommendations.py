@@ -16,7 +16,7 @@ def build_account_map(tweets: list[Tweet]) -> dict[str, str]:
 
 
 def extract_interaction_counts(
-    tweets: list[Tweet], likes: list[Like], account_map: dict[str, str]
+    tweets: list[Tweet], likes: list[Like], account_map: dict[str, str], config: AppConfig
 ) -> tuple[Counter[str], Counter[str], Counter[str], Counter[str]]:
     reply_counts: Counter[str] = Counter()
     retweet_counts: Counter[str] = Counter()
@@ -87,6 +87,18 @@ class RecommendationAnalytics:
         score = self.score_account(account_id)
         screen_name = self.account_map.get(account_id, "unknown")
 
+        is_follower = account_id in self.followers
+        is_following = account_id in self.following
+
+        if is_follower and is_following:
+            category = "Mutual" if score > 0 else "Ghost"
+        elif is_follower:
+            category = "Fan"
+        elif is_following:
+            category = "Unfollow Candidate" if score == 0 else "Unrequited"
+        else:
+            category = "Other"
+
         if screen_name != "unknown":
             user_link = f"https://twitter.com/{screen_name}"
         else:
@@ -102,6 +114,7 @@ class RecommendationAnalytics:
             retweet_count=self.retweet_counts.get(account_id, 0),
             mention_count=self.mention_counts.get(account_id, 0),
             like_count=self.like_counts.get(account_id, 0),
+            category=category,
         )
 
     def get_unfollow_candidates(self, limit: int | None = None) -> list[AccountScore]:

@@ -18,6 +18,7 @@ def export_account_scores_to_csv(scores: list[AccountScore]) -> str:
             "mention_count",
             "like_count",
             "user_link",
+            "category",
         ]
     )
 
@@ -33,6 +34,7 @@ def export_account_scores_to_csv(scores: list[AccountScore]) -> str:
                 s.mention_count,
                 s.like_count,
                 s.user_link,
+                s.category,
             ]
         )
 
