@@ -72,3 +72,9 @@ def load_likes(path: str) -> list[Like]:
         for i in data
         if "like" in i
     ]
+
+
+def load_mutes(path: str) -> set[str]:
+    with open(path, "r", encoding="utf-8") as f:
+        data = parse_archive(f.read())
+    return {i["muting"].get("accountId", "") for i in data if "muting" in i}

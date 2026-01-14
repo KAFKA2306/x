@@ -18,6 +18,7 @@ def export_account_scores_to_csv(scores: list[AccountScore]) -> str:
         "like_count",
         "user_link",
         "category",
+        "is_muted",
     ]
     w.writerow(fields)
     for s in scores:

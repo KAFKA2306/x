@@ -14,7 +14,7 @@ from src.analytics.core import (
 from src.analytics.recommendations import RecommendationAnalytics, extract_interactions
 from src.config import load_config
 from src.exporters import export_account_scores_to_csv, export_tweets_to_csv
-from src.loader import load_likes, load_tweets, load_user_list
+from src.loader import load_likes, load_mutes, load_tweets, load_user_list
 
 app = FastAPI()
 templates = Jinja2Templates(directory="src/web/templates")
@@ -25,11 +25,12 @@ ans = analyze_tweets_core(tweets, config) if tweets else None
 fers = load_user_list(config.files.follower)
 fing = load_user_list(config.files.following)
 likes = load_likes(config.files.like) if os.path.exists(config.files.like) else []
+mutes = load_mutes(config.files.mute) if os.path.exists(config.files.mute) else set()
 
 if tweets:
     umap = {}
-    cnts, hts = extract_interactions(tweets, likes, umap, config)
-    ra = RecommendationAnalytics(config, set(fers), set(fing), cnts, umap)
+    ids_cnt, hts = extract_interactions(tweets, likes, umap, config)
+    ra = RecommendationAnalytics(config, set(fers), set(fing), ids_cnt, umap, mutes)
 else:
     ra = None
 
@@ -45,11 +46,14 @@ async def get_audience_insights(request: Request):
         return HTMLResponse("<p>No data available</p>")
     from src.models import InteractionStats
 
+    def map_n(counts):
+        return [(ra.account_map.get(aid, aid), c) for aid, c in counts]
+
     stats = InteractionStats(
-        top_replied=ra.counts["reply"].most_common(config.limits.top_stats),
-        top_retweeted=ra.counts["retweet"].most_common(config.limits.top_stats),
+        top_replied=map_n(ra.counts["reply"].most_common(config.limits.top_stats)),
+        top_retweeted=map_n(ra.counts["retweet"].most_common(config.limits.top_stats)),
         top_hashtags=hts.most_common(config.limits.top_stats),
-        top_mentions=ra.counts["mention"].most_common(config.limits.top_stats),
+        top_mentions=map_n(ra.counts["mention"].most_common(config.limits.top_stats)),
         total_replies=sum(ra.counts["reply"].values()),
         total_retweets=sum(ra.counts["retweet"].values()),
     )

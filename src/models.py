@@ -67,6 +67,7 @@ class FileConfig(BaseModel):
     follower: str = "data/follower.js"
     following: str = "data/following.js"
     like: str = "data/like.js"
+    mute: str = "data/mute.js"
 
 
 class AppConfig(BaseModel):
@@ -100,3 +101,4 @@ class AccountScore(BaseModel):
     mention_count: int
     like_count: int
     category: str = ""
+    is_muted: bool = False

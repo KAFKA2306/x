@@ -6,20 +6,24 @@ from src.models import AccountScore, AppConfig, Like, Tweet
 def extract_interactions(
     tweets: list[Tweet], likes: list[Like], account_map: dict[str, str], config: AppConfig
 ) -> tuple[dict[str, Counter], Counter]:
-    counts = {k: Counter() for k in ["reply", "retweet", "mention", "like"]}
+    ids = {k: Counter() for k in ["reply", "retweet", "mention", "like"]}
     hashtags = Counter()
 
-    for t in tweets:
+    for t in reversed(tweets):
         if t.reply_to_user_id:
-            counts["reply"][t.reply_to_user_id] += 1
+            ids["reply"][t.reply_to_user_id] += 1
             if t.reply_to_user:
                 account_map[t.reply_to_user_id] = t.reply_to_user
+
         if t.retweeted_user_id:
-            counts["retweet"][t.retweeted_user_id] += 1
+            ids["retweet"][t.retweeted_user_id] += 1
             if t.retweeted_user:
                 account_map[t.retweeted_user_id] = t.retweeted_user
-        for uid in t.mention_user_ids:
-            counts["mention"][uid] += 1
+
+        for uid, sn in zip(t.mention_user_ids, t.mentions):
+            ids["mention"][uid] += 1
+            if sn:
+                account_map[uid] = sn
         for h in t.hashtags:
             hashtags[h] += 1
 
@@ -27,9 +31,9 @@ def extract_interactions(
     for lt in likes:
         for s in lt.mentions:
             if s in s_to_id:
-                counts["like"][s_to_id[s]] += 1
+                ids["like"][s_to_id[s]] += 1
 
-    return counts, hashtags
+    return ids, hashtags
 
 
 class RecommendationAnalytics:
@@ -40,12 +44,14 @@ class RecommendationAnalytics:
         following: set[str],
         counts: dict[str, Counter],
         account_map: dict[str, str],
+        muted: set[str] | None = None,
     ):
         self.config = config
         self.followers = followers
         self.following = following
         self.counts = counts
         self.account_map = account_map
+        self.muted = muted or set()
 
     def score(self, aid: str) -> int:
         w = self.config.weights
@@ -78,11 +84,12 @@ class RecommendationAnalytics:
             mention_count=self.counts["mention"].get(aid, 0),
             like_count=self.counts["like"].get(aid, 0),
             category=cat,
+            is_muted=aid in self.muted,
         )
 
     def get_unfollow_candidates(self) -> list[AccountScore]:
         res = [self._create(aid) for aid in (self.following - self.followers) if self.score(aid) == 0]
-        return sorted(res, key=lambda x: x.account_id)
+        return sorted(res, key=lambda x: (not x.is_muted, x.account_id))
 
     def get_valuable_mutuals(self, limit: int | None = None) -> list[AccountScore]:
         lim = limit or self.config.limits.mutuals
