@@ -33,13 +33,9 @@ followers = load_user_list(followers_file)
 following = load_user_list(following_file)
 likes = load_likes(like_file) if os.path.exists(like_file) else []
 
-mentioned_users = set()
-for t in tweets:
-    mentioned_users.update(t.mentions)
-
 audience_analytics = AudienceAnalytics(tweets) if tweets else None
 efficiency_analytics = EfficiencyAnalytics(tweets) if tweets else None
-graph_analytics = GraphAnalytics(followers, following, mentioned_users)
+graph_analytics = GraphAnalytics(followers, following)
 likes_interests = analyze_likes_interests(likes) if likes else None
 tweets_interests = analyze_tweets_interests(tweets) if tweets else None
 

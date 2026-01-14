@@ -28,13 +28,17 @@ STOP_WORDS = {
 }
 
 
+
+
+
 def extract_interests(texts: List[str]) -> Dict[str, any]:
     all_text = " ".join(texts)
 
     hashtags = re.findall(r"#(\w+)", all_text)
     hashtag_counts = Counter(hashtags)
 
-    words = re.findall(r"\b\w{4,}\b", all_text.lower())
+    text_no_mentions = re.sub(r"@\w+", "", all_text)
+    words = re.findall(r"\b\w{4,}\b", text_no_mentions.lower())
     filtered_words = [w for w in words if w not in STOP_WORDS]
     word_counts = Counter(filtered_words)
 
