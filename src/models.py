@@ -20,11 +20,15 @@ class Tweet(BaseModel):
     retweeted_user: str | None = None
     media_count: int = 0
     has_media: bool = False
+    hashtags: list[str] = []
+    mentions: list[str] = []
 
 
 class InteractionStats(BaseModel):
     top_replied: list[tuple[str, int]]
     top_retweeted: list[tuple[str, int]]
+    top_hashtags: list[tuple[str, int]]
+    top_mentions: list[tuple[str, int]]
     total_replies: int
     total_retweets: int
 
@@ -35,6 +39,7 @@ class TweetAnalysis(BaseModel):
     avg_words: float
     top_words: list[tuple[str, float]]
     tweets_per_day: dict[str, int]
+    tweets_per_week: dict[str, int]
     tweets_per_hour: dict[int, int]
     tweets_by_type: dict[str, int]
     word_freq: dict[str, int]
@@ -47,3 +52,9 @@ class AppConfig(BaseModel):
     preset: str = "default"
     vrchat_keywords: list[str] = []
     photo_keywords: list[str] = []
+
+
+class Like(BaseModel):
+    tweet_id: str
+    full_text: str
+    expanded_url: str

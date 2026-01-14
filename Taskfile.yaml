@@ -4,15 +4,17 @@ tasks:
   lint:
     desc: Lint code using ruff
     cmds:
-      - uv run ruff check src
+      - uv run ruff check . --fix
 
   format:
     desc: Format code using ruff
     cmds:
-      - uv run ruff format src
+      - uv run ruff format .
 
-  start:
+  serve:
     desc: Start the Analytics Dashboard
+    aliases: 
+      - dev
     cmds:
       - uv run python -m src.main
 

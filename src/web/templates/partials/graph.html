@@ -1,41 +1,64 @@
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <div>
-        <canvas id="followChart" height="180"></canvas>
+    <div class="relative h-48">
+        <canvas id="followChart"></canvas>
     </div>
-    <div class="grid grid-cols-3 gap-3">
+    <div class="grid grid-cols-2 gap-3">
         <div class="bg-dark-700/50 rounded-xl p-4 text-center">
-            <p class="text-3xl font-bold text-rose-400">{{ graph.stats.non_followers_count }}</p>
-            <p class="text-xs text-gray-400 mt-1">Not Following Back</p>
+            <p class="text-2xl font-bold text-violet-400">{{ graph.stats.follow_back_rate }}%</p>
+            <p class="text-xs text-gray-400 mt-1">Follow Back Rate</p>
         </div>
         <div class="bg-dark-700/50 rounded-xl p-4 text-center">
-            <p class="text-3xl font-bold text-emerald-400">{{ graph.stats.fans_count }}</p>
-            <p class="text-xs text-gray-400 mt-1">Fans</p>
+            <p class="text-2xl font-bold text-amber-400">{{ graph.stats.fan_ratio }}%</p>
+            <p class="text-xs text-gray-400 mt-1">Fan Ratio</p>
         </div>
         <div class="bg-dark-700/50 rounded-xl p-4 text-center">
-            <p class="text-3xl font-bold text-sky-400">{{ graph.stats.mutuals_count }}</p>
-            <p class="text-xs text-gray-400 mt-1">Mutuals</p>
+            <p class="text-2xl font-bold text-cyan-400">{{ graph.stats.ff_ratio }}</p>
+            <p class="text-xs text-gray-400 mt-1">FF Ratio</p>
+        </div>
+        <div class="bg-dark-700/50 rounded-xl p-4 text-center">
+            <p class="text-2xl font-bold text-rose-400">{{ graph.stats.no_interaction_count }}</p>
+            <p class="text-xs text-gray-400 mt-1">No Interaction</p>
         </div>
     </div>
 </div>
 
 <script>
     new Chart(document.getElementById('followChart'), {
-        type: 'doughnut',
+        type: 'bar',
         data: {
             labels: ['Followers', 'Following'],
-            datasets: [{
-                data: [{{ graph.stats.total_followers }}, {{ graph.stats.total_following }}],
-        backgroundColor: ['#6366f1', '#8b5cf6'],
-        borderWidth: 0,
-        cutout: '70%'
-    }]
+            datasets: [
+                {
+                    label: 'Mutuals',
+                    data: [{{ graph.stats.mutuals_count }}, {{ graph.stats.mutuals_count }}],
+        backgroundColor: '#0ea5e9',
+        borderRadius: 4
     },
+        {
+            label: 'Fans Only',
+            data: [{{ graph.stats.fans_count }}, 0],
+        backgroundColor: '#10b981',
+        borderRadius: 4
+                },
+        {
+            label: 'Not Following Back',
+            data: [0, {{ graph.stats.non_followers_count }}],
+        backgroundColor: '#f43f5e',
+        borderRadius: 4
+                }
+            ]
+        },
         options: {
+        indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
+        scales: {
+            x: { stacked: true, ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { stacked: true, ticks: { color: '#9ca3af' }, grid: { display: false } }
+        },
         plugins: {
-            legend: { position: 'bottom', labels: { color: '#9ca3af', padding: 16 } }
+            legend: { position: 'bottom', labels: { color: '#9ca3af', padding: 12, boxWidth: 12 } }
         }
     }
-});
+    });
 </script>

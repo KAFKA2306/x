@@ -27,11 +27,15 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
     <div class="glass p-6 rounded-2xl">
         <h2 class="text-xl font-semibold mb-4">Tweet Activity</h2>
-        <canvas id="activityChart" height="200"></canvas>
+        <div class="relative h-64">
+            <canvas id="activityChart"></canvas>
+        </div>
     </div>
     <div class="glass p-6 rounded-2xl">
         <h2 class="text-xl font-semibold mb-4">Tweet Composition</h2>
-        <canvas id="typeChart" height="200"></canvas>
+        <div class="relative h-64">
+            <canvas id="typeChart"></canvas>
+        </div>
     </div>
 </div>
 
@@ -39,6 +43,13 @@
     <h2 class="text-xl font-semibold mb-4">Best Time to Tweet</h2>
     <div hx-get="/efficiency" hx-trigger="load">
         <div class="h-64 bg-dark-700/50 rounded-xl animate-pulse"></div>
+    </div>
+</div>
+
+<div class="glass p-6 rounded-2xl mb-8">
+    <h2 class="text-xl font-semibold mb-4">Interests Profile (Likes)</h2>
+    <div hx-get="/interests" hx-trigger="load">
+        <div class="h-48 bg-dark-700/50 rounded-xl animate-pulse"></div>
     </div>
 </div>
 
@@ -69,21 +80,19 @@
     };
 
     {% if analysis %}
-    const dailyData = {{ analysis.tweets_per_day | tojson }};
-    const labels = Object.keys(dailyData).slice(-30);
-    const values = labels.map(k => dailyData[k]);
+    const weeklyData = {{ analysis.tweets_per_week | tojson }};
+    const labels = Object.keys(weeklyData).slice(-20);
+    const values = labels.map(k => weeklyData[k]);
 
     new Chart(document.getElementById('activityChart'), {
-        type: 'line',
+        type: 'bar',
         data: {
-            labels: labels.map(d => d.slice(5)),
+            labels: labels,
             datasets: [{
                 label: 'Tweets',
                 data: values,
-                borderColor: '#6366f1',
-                backgroundColor: 'rgba(99,102,241,0.1)',
-                fill: true,
-                tension: 0.4
+                backgroundColor: '#6366f1',
+                borderRadius: 4
             }]
         },
         options: { ...chartDefaults, plugins: { legend: { display: false } } }

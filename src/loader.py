@@ -1,9 +1,8 @@
-import json
 import re
 from datetime import datetime
 
 from src.adapters import parse_archive
-from src.models import Tweet
+from src.models import Like, Tweet
 
 
 def clean_text(text: str) -> str:
@@ -24,27 +23,37 @@ def load_tweets(file_path: str) -> list[Tweet]:
     tweets = []
 
     for item in raw_tweets:
-        if "full_text" not in item["tweet"]:
+        if "tweet" not in item:
             continue
 
         tweet_data = item["tweet"]
+        if "full_text" not in tweet_data:
+            continue
+
         full_text = clean_text(tweet_data["full_text"])
         created_at = parse_date(tweet_data["created_at"])
+
+        entities = tweet_data.get("entities", {})
+        extended_entities = tweet_data.get("extended_entities", {})
+
+        hashtags = [h["text"] for h in entities.get("hashtags", [])]
+        mentions = [m["screen_name"] for m in entities.get("user_mentions", [])]
+
+        media_list = extended_entities.get("media", [])
+        media_count = len(media_list)
+        has_media = media_count > 0
 
         is_retweet = full_text.startswith("RT @")
         is_reply = full_text.startswith("@")
         is_original = not (is_retweet or is_reply)
 
+        reply_to_user = tweet_data.get("in_reply_to_screen_name")
+
         retweeted_user = None
-        reply_to_user = None
         if is_retweet:
             match = re.search(r"RT @(\w+)", full_text)
             if match:
                 retweeted_user = match.group(1)
-        elif is_reply:
-            match = re.search(r"^@(\w+)", full_text)
-            if match:
-                reply_to_user = match.group(1)
 
         tweet = Tweet(
             created_at=created_at,
@@ -54,13 +63,17 @@ def load_tweets(file_path: str) -> list[Tweet]:
             is_original=is_original,
             char_count=len(full_text),
             word_count=len(full_text.split()),
-            mention_count=full_text.count("@"),
-            hashtag_count=full_text.count("#"),
-            url_count=tweet_data["full_text"].count("http"),
+            mention_count=len(mentions),
+            hashtag_count=len(hashtags),
+            url_count=len(entities.get("urls", [])),
             favorite_count=int(tweet_data.get("favorite_count", 0)),
             retweet_count=int(tweet_data.get("retweet_count", 0)),
             reply_to_user=reply_to_user,
             retweeted_user=retweeted_user,
+            media_count=media_count,
+            has_media=has_media,
+            hashtags=hashtags,
+            mentions=mentions,
         )
         tweets.append(tweet)
 
@@ -79,3 +92,26 @@ def load_user_list(input_file: str) -> list[str]:
         elif "following" in item:
             user_ids.append(item["following"].get("accountId", "unknown"))
     return user_ids
+
+
+def load_likes(file_path: str) -> list[Like]:
+    with open(file_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    data = parse_archive(content)
+    likes = []
+
+    for item in data:
+        if "like" not in item:
+            continue
+
+        like_data = item["like"]
+        likes.append(
+            Like(
+                tweet_id=like_data.get("tweetId", ""),
+                full_text=clean_text(like_data.get("fullText", "")),
+                expanded_url=like_data.get("expandedUrl", ""),
+            )
+        )
+
+    return likes

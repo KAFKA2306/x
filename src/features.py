@@ -29,6 +29,9 @@ def analyze_tweets(tweets: List[Tweet]) -> TweetAnalysis:
     tweets_per_day = df.groupby(df["created_at"].dt.date).size().to_dict()
     tweets_per_day_str = {str(k): v for k, v in tweets_per_day.items()}
 
+    tweets_per_week = df.groupby(df["created_at"].dt.to_period("M")).size().to_dict()
+    tweets_per_week_str = {str(k): int(v) for k, v in tweets_per_week.items()}
+
     tweets_per_hour = df.groupby(df["created_at"].dt.hour).size().to_dict()
 
     tweets_by_type = {
@@ -43,6 +46,7 @@ def analyze_tweets(tweets: List[Tweet]) -> TweetAnalysis:
         avg_words=avg_words,
         top_words=top_words,
         tweets_per_day=tweets_per_day_str,
+        tweets_per_week=tweets_per_week_str,
         tweets_per_hour=tweets_per_hour,
         tweets_by_type=tweets_by_type,
         word_freq=dict(word_freq.most_common(100)),

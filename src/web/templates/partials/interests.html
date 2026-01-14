@@ -1,0 +1,73 @@
+<div class="space-y-8">
+    {% if likes %}
+    <div>
+        <h3 class="text-lg font-semibold text-rose-400 mb-4">From Likes ({{ likes.total_likes }})</h3>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <h4 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">Hashtags</h4>
+                <div class="space-y-1">
+                    {% for tag, count in likes.top_hashtags[:10] %}
+                    <div class="flex items-center justify-between bg-dark-700/50 rounded px-2 py-1">
+                        <span class="text-gray-200 text-sm">#{{ tag }}</span>
+                        <span class="text-rose-400 font-mono text-xs">{{ count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div>
+                <h4 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">Keywords</h4>
+                <div class="space-y-1">
+                    {% for word, count in likes.top_keywords[:10] %}
+                    <div class="flex items-center justify-between bg-dark-700/50 rounded px-2 py-1">
+                        <span class="text-gray-200 text-sm">{{ word }}</span>
+                        <span class="text-amber-400 font-mono text-xs">{{ count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if tweets %}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {% for key in ['original', 'retweets', 'replies'] %}
+        {% set data = tweets[key] %}
+        <div>
+            <h3
+                class="text-lg font-semibold mb-4 {% if key == 'original' %}text-emerald-400{% elif key == 'retweets' %}text-amber-400{% else %}text-sky-400{% endif %}">
+                {{ data.label }} ({{ data.count }})
+            </h3>
+            <div class="space-y-4">
+                <div>
+                    <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Hashtags</h4>
+                    <div class="space-y-1">
+                        {% for tag, count in data.top_hashtags[:7] %}
+                        <div class="flex items-center justify-between bg-dark-700/50 rounded px-2 py-1">
+                            <span class="text-gray-200 text-sm truncate">#{{ tag }}</span>
+                            <span
+                                class="font-mono text-xs {% if key == 'original' %}text-emerald-400{% elif key == 'retweets' %}text-amber-400{% else %}text-sky-400{% endif %}">{{
+                                count }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Keywords</h4>
+                    <div class="space-y-1">
+                        {% for word, count in data.top_keywords[:7] %}
+                        <div class="flex items-center justify-between bg-dark-700/50 rounded px-2 py-1">
+                            <span class="text-gray-200 text-sm truncate">{{ word }}</span>
+                            <span
+                                class="font-mono text-xs {% if key == 'original' %}text-emerald-400{% elif key == 'retweets' %}text-amber-400{% else %}text-sky-400{% endif %}">{{
+                                count }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>

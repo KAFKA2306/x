@@ -25,4 +25,30 @@
             {% endfor %}
         </div>
     </div>
+    <div>
+        <h3 class="text-sm font-semibold text-pink-400 uppercase tracking-wide mb-3">Top Hashtags</h3>
+        <div class="space-y-2">
+            {% for tag, count in stats.top_hashtags[:5] %}
+            <div class="flex items-center justify-between bg-dark-700/50 rounded-lg px-3 py-2">
+                <span class="text-gray-200 font-medium">#{{ tag }}</span>
+                <span class="text-pink-400 font-mono text-sm">{{ count }}</span>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">No hashtags found</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div>
+        <h3 class="text-sm font-semibold text-blue-400 uppercase tracking-wide mb-3">Top Mentions</h3>
+        <div class="space-y-2">
+            {% for user, count in stats.top_mentions[:5] %}
+            <div class="flex items-center justify-between bg-dark-700/50 rounded-lg px-3 py-2">
+                <span class="text-gray-200 font-medium">@{{ user }}</span>
+                <span class="text-blue-400 font-mono text-sm">{{ count }}</span>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">No mentions found</p>
+            {% endfor %}
+        </div>
+    </div>
 </div>
