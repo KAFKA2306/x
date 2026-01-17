@@ -1,8 +1,6 @@
 [project]
 name = "twitter-analysis"
 version = "0.1.0"
-description = "Twitter Data Analysis Tool"
-readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "pandas",
@@ -13,9 +11,6 @@ dependencies = [
     "uvicorn",
     "jinja2",
     "python-multipart",
-    "onnxruntime>=1.23.2",
-    "tokenizers>=0.22.2",
-    "numpy>=2.4.1",
 ]
 
 [tool.ruff]
@@ -24,10 +19,6 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]
-ignore = []
 
 [tool.ruff.format]
 quote-style = "double"
-indent-style = "space"
-skip-magic-trailing-comma = false
-line-ending = "auto"

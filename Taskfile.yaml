@@ -2,23 +2,22 @@ version: '3'
 
 tasks:
   lint:
-    desc: Lint code using ruff
-    cmds:
-      - uv run ruff check . --fix
+    cmds: [uv run ruff check . --fix]
 
   format:
-    desc: Format code using ruff
-    cmds:
-      - uv run ruff format .
+    cmds: [uv run ruff format .]
 
   serve:
-    desc: Start the Analytics Dashboard (watches src and data for changes)
-    aliases: 
-      - dev
-    cmds:
-      - uv run uvicorn src.web.app:app --host 0.0.0.0 --port 8000 --reload --reload-dir src --reload-dir data
+    aliases: [dev]
+    cmds: [uv run uvicorn src.web.app:app --host 0.0.0.0 --port 8000 --reload --reload-dir src --reload-dir data]
 
-  test:
-    desc: Run tests
-    cmds:
-      - echo "No tests implemented yet"
+  up:
+    aliases: [docker-up]
+    cmds: [docker compose up --build]
+
+  down:
+    aliases: [docker-down]
+    cmds: [docker compose down]
+
+  tunnel:
+    cmds: [ssh -R 80:localhost:80 serveo.net]

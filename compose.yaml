@@ -1,0 +1,10 @@
+services:
+  app:
+    build: .
+    volumes: [ ./src:/app/src, ./data:/app/data, ./config.yaml:/app/config.yaml ]
+
+  nginx:
+    image: nginx:alpine
+    volumes: [ ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro ]
+    ports: [ "80:80" ]
+    depends_on: [ app ]
