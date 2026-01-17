@@ -1,0 +1,16 @@
+<div class="card">
+    <h3>🧩 Topic Clusters</h3>
+    <p class="text-gray-400">ML-based grouping of liked tweets</p>
+</div>
+{% for c in clusters %}
+<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h4>Cluster #{{ c.id + 1 }}</h4><span class="badge">{{ c.size }}</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:0.25rem;margin:0.5rem 0;">{% for kw in c.keywords %}<span
+            style="background:rgba(99,102,241,0.3);padding:0.125rem 0.5rem;border-radius:0.25rem;font-size:0.7rem;color:#a5b4fc;">{{
+            kw }}</span>{% endfor %}</div>
+    <div style="border-left:2px solid rgba(99,102,241,0.5);padding-left:1rem;">{% for s in c.samples %}<p
+            style="font-size:0.8rem;color:#9ca3af;margin:0.25rem 0;">{{ s }}...</p>{% endfor %}</div>
+</div>
+{% endfor %}

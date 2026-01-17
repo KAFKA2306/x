@@ -1,0 +1,34 @@
+<div class="card">
+    <h3>📊 Likes Analysis</h3>
+    <p class="text-gray-400">Total: {{ analysis.total }} | Categorized: {{ analysis.categorized }} ({{
+        analysis.categorized_pct }}%)</p>
+</div>
+<div class="card">
+    <h3>📂 Groups</h3>
+    <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:0.5rem;">
+        {% for g, c in analysis.groups.items() %}<div class="stat-box"><span class="label">{{ g }}</span><span
+                class="value">{{ c }}</span></div>{% endfor %}
+    </div>
+</div>
+<div class="card">
+    <h3>🏷️ Categories</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Count</th>
+                <th>%</th>
+                <th>Top</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cat in analysis.categories[:12] %}<tr>
+                <td><span class="badge">{{ cat.name }}</span></td>
+                <td>{{ cat.count }}</td>
+                <td>{{ cat.percentage }}%</td>
+                <td>{% for a, n in cat.top_accounts[:2] %}<a href="https://x.com/{{ a }}" class="text-blue-400">@{{ a
+                        }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</td>
+            </tr>{% endfor %}
+        </tbody>
+    </table>
+</div>

@@ -14,18 +14,15 @@ def extract_interactions(
     for t in reversed(tweets):
         if t.reply_to_user_id:
             ids["reply"][t.reply_to_user_id] += 1
-            if t.reply_to_user:
-                account_map[t.reply_to_user_id] = t.reply_to_user
+            account_map[t.reply_to_user_id] = t.reply_to_user or account_map.get(t.reply_to_user_id, "")
 
         if t.retweeted_user_id:
             ids["retweet"][t.retweeted_user_id] += 1
-            if t.retweeted_user:
-                account_map[t.retweeted_user_id] = t.retweeted_user
+            account_map[t.retweeted_user_id] = t.retweeted_user or account_map.get(t.retweeted_user_id, "")
 
         for uid, sn in zip(t.mention_user_ids, t.mentions):
             ids["mention"][uid] += 1
-            if sn:
-                account_map[uid] = sn
+            account_map[uid] = sn or account_map.get(uid, "")
         for h in t.hashtags:
             hashtags[h] += 1
 
@@ -67,7 +64,8 @@ class RecommendationAnalytics:
     def score(self, aid: str) -> int:
         w = self.config.weights
         s = w.follower if aid in self.followers else 0
-        return s + sum(self.counts[k].get(aid, 0) * getattr(w, k) for k in ["reply", "retweet", "mention", "like", "quote"])
+        keys = ["reply", "retweet", "mention", "like", "quote"]
+        return s + sum(self.counts[k].get(aid, 0) * getattr(w, k) for k in keys)
 
     def _create(self, aid: str) -> AccountScore:
         s = self.score(aid)
@@ -83,7 +81,7 @@ class RecommendationAnalytics:
         else:
             cat = "Other"
 
-        link = f"https://twitter.com/{sn}" if sn != "unknown" else f"https://twitter.com/i/user/{aid}"
+        link = f"https://x.com/{sn}" if sn != "unknown" else f"https://x.com/i/user/{aid}"
         return AccountScore(
             account_id=aid,
             screen_name=sn,

@@ -11,6 +11,8 @@ from src.analytics.core import (
     analyze_interests,
     analyze_tweets_core,
 )
+from src.analytics.likes import analyze_likes, cluster_likes
+from src.analytics.profiling import analyze_profile
 from src.analytics.recommendations import RecommendationAnalytics, extract_interactions
 from src.config import load_config
 from src.exporters import export_account_scores_to_csv, export_tweets_to_csv
@@ -111,40 +113,54 @@ async def get_recommendations(request: Request):
     )
 
 
+def csv_response(data: str, filename: str):
+    headers = {"Content-Disposition": f"attachment; filename={filename}"}
+    return PlainTextResponse(data, media_type="text/csv", headers=headers)
+
+
 @app.get("/recommendations/download")
 async def dl_rec():
-    return PlainTextResponse(
-        export_account_scores_to_csv(ra.get_unfollow_candidates()),
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=unfollow.csv"},
-    )
+    return csv_response(export_account_scores_to_csv(ra.get_unfollow_candidates()), "unfollow.csv")
 
 
 @app.get("/recommendations/download_mutuals")
 async def dl_mut():
-    return PlainTextResponse(
-        export_account_scores_to_csv(ra.get_valuable_mutuals(0)),
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=mutuals.csv"},
-    )
+    return csv_response(export_account_scores_to_csv(ra.get_valuable_mutuals(0)), "mutuals.csv")
 
 
 @app.get("/tweets/download")
 async def dl_tw():
-    return PlainTextResponse(
-        export_tweets_to_csv(tweets),
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=tweets.csv"},
-    )
+    return csv_response(export_tweets_to_csv(tweets), "tweets.csv")
 
 
 @app.get("/interactions/download")
 async def dl_int():
-    return PlainTextResponse(
-        export_account_scores_to_csv(ra.get_all()),
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=interactions.csv"},
+    return csv_response(export_account_scores_to_csv(ra.get_all()), "interactions.csv")
+
+
+@app.get("/profile", response_class=HTMLResponse)
+async def get_profile(request: Request):
+    if not tweets:
+        return HTMLResponse("<p>No data available</p>")
+    return templates.TemplateResponse(
+        "partials/profile.html", {"request": request, "profile": analyze_profile(tweets, config)}
     )
+
+
+@app.get("/likes", response_class=HTMLResponse)
+async def get_likes_analysis(request: Request):
+    if not likes:
+        return HTMLResponse("<p>No data available</p>")
+    return templates.TemplateResponse(
+        "partials/likes.html", {"request": request, "analysis": analyze_likes(likes, config)}
+    )
+
+
+@app.get("/likes/clusters", response_class=HTMLResponse)
+async def get_likes_clusters(request: Request):
+    if not likes:
+        return HTMLResponse("<p>No data available</p>")
+    return templates.TemplateResponse("partials/clusters.html", {"request": request, "clusters": cluster_likes(likes)})
 
 
 def start_server():

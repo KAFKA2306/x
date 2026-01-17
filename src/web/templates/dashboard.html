@@ -91,6 +91,20 @@
     </div>
 
     <div class="glass p-6 rounded-2xl mb-8">
+        <h2 class="text-xl font-semibold mb-4">User Profile</h2>
+        <div hx-get="/profile" hx-trigger="load">
+            <div class="h-48 bg-dark-700/50 rounded-xl animate-pulse"></div>
+        </div>
+    </div>
+
+    <div class="glass p-6 rounded-2xl mb-8">
+        <h2 class="text-xl font-semibold mb-4">Likes Analysis</h2>
+        <div hx-get="/likes" hx-trigger="load">
+            <div class="h-48 bg-dark-700/50 rounded-xl animate-pulse"></div>
+        </div>
+    </div>
+
+    <div class="glass p-6 rounded-2xl mb-8">
         <h2 class="text-xl font-semibold mb-4">Follow Management</h2>
         <div hx-get="/recommendations" hx-trigger="load">
             <div class="h-48 bg-dark-700/50 rounded-xl animate-pulse"></div>
@@ -98,56 +112,56 @@
     </div>
 </div>
 
-    <script>
-        const chartDefaults = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: '#9ca3af' } } },
-            scales: {
-                x: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                y: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-            }
-        };
+<script>
+    const chartDefaults = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#9ca3af' } } },
+        scales: {
+            x: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+        }
+    };
 
-        {% if analysis %}
-        const weeklyData = {{ analysis.tweets_per_week | tojson }};
-        const labels = Object.keys(weeklyData).slice(-20);
-        const values = labels.map(k => weeklyData[k]);
+    {% if analysis %}
+    const weeklyData = {{ analysis.tweets_per_week | tojson }};
+    const labels = Object.keys(weeklyData).slice(-20);
+    const values = labels.map(k => weeklyData[k]);
 
-        new Chart(document.getElementById('activityChart'), {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Tweets',
-                    data: values,
-                    backgroundColor: '#6366f1',
-                    borderRadius: 4
-                }]
-            },
-            options: { ...chartDefaults, plugins: { legend: { display: false } } }
-        });
+    new Chart(document.getElementById('activityChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Tweets',
+                data: values,
+                backgroundColor: '#6366f1',
+                borderRadius: 4
+            }]
+        },
+        options: { ...chartDefaults, plugins: { legend: { display: false } } }
+    });
 
-        new Chart(document.getElementById('typeChart'), {
-            type: 'doughnut',
-            data: {
-                labels: ['Original', 'Retweet', 'Reply'],
-                datasets: [{
-                    data: [
-                        {{ analysis.tweets_by_type.original }},
-                {{ analysis.tweets_by_type.retweet }},
+    new Chart(document.getElementById('typeChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Original', 'Retweet', 'Reply'],
+            datasets: [{
+                data: [
+                    {{ analysis.tweets_by_type.original }},
+            {{ analysis.tweets_by_type.retweet }},
                 {{ analysis.tweets_by_type.reply }}
             ],
-            backgroundColor: ['#10b981', '#f59e0b', '#0ea5e9'],
-            borderWidth: 0
+        backgroundColor: ['#10b981', '#f59e0b', '#0ea5e9'],
+        borderWidth: 0
         }]
     },
-            options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af', padding: 20 } } }
-        }
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af', padding: 20 } } }
+    }
 });
-        {% endif %}
-    </script>
-    {% endblock %}
+    {% endif %}
+</script>
+{% endblock %}

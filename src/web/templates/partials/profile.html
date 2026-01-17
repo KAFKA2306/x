@@ -1,0 +1,51 @@
+<div class="card">
+    <h3>📊 User Profile</h3>
+    <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;">
+        {% for label, val in [('Total', profile.total_tweets), ('Per Day', profile.tweets_per_day), ('Peak',
+        profile.peak_hour ~ ':00'), ('Engagement', profile.avg_engagement), ('Chars', profile.avg_chars), ('Reply %',
+        profile.reply_rate ~ '%')] %}
+        <div class="stat-box"><span class="label">{{ label }}</span><span class="value">{{ val }}</span></div>
+        {% endfor %}
+    </div>
+</div>
+<div class="card">
+    <h3>📝 Content Mix</h3><canvas id="mixChart" height="150"></canvas>
+</div>
+<div class="card">
+    <h3>📈 Monthly Trend</h3><canvas id="trendChart" height="200"></canvas>
+</div>
+<div class="card">
+    <h3>🔥 Best Tweets</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Text</th>
+                <th>❤️</th>
+                <th>🔁</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in profile.best_tweets %}<tr>
+                <td>{{ t.date }}</td>
+                <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;">{{ t.text }}</td>
+                <td>{{ t.likes }}</td>
+                <td>{{ t.rts }}</td>
+            </tr>{% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="card">
+    <h3>🏷️ Keywords</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">{% for kw, cnt in profile.top_keywords[:10] %}<span
+            class="badge">{{ kw }} ({{ cnt }})</span>{% endfor %}</div>
+</div>
+<div class="card">
+    <h3>#️⃣ Hashtags</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">{% for ht, cnt in profile.top_hashtags[:10] %}<span
+            class="badge">#{{ ht }} ({{ cnt }})</span>{% endfor %}</div>
+</div>
+<script>
+    new Chart(document.getElementById('mixChart'), { type: 'doughnut', data: { labels: ['Original', 'Retweet', 'Reply'], datasets: [{ data: [{{ profile.content_mix.original }}, {{ profile.content_mix.retweet }},{{ profile.content_mix.reply }}], backgroundColor: ['#4ade80', '#60a5fa', '#f472b6']}]}, options: { plugins: { legend: { position: 'bottom' } } }});
+    new Chart(document.getElementById('trendChart'), { type: 'bar', data: { labels: {{ profile.monthly_trend.keys() | list | tojson }}, datasets: [{ label: 'Tweets', data: {{ profile.monthly_trend.values() | list | tojson }}, backgroundColor: '#60a5fa'}]}, options: { scales: { y: { beginAtZero: true } } }});
+</script>

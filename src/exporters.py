@@ -3,27 +3,27 @@ import io
 
 from src.models import AccountScore, Tweet
 
+ACCOUNT_FIELDS = [
+    "account_id",
+    "screen_name",
+    "score",
+    "follows_back",
+    "reply_count",
+    "retweet_count",
+    "mention_count",
+    "like_count",
+    "quote_count",
+    "user_link",
+    "category",
+    "is_muted",
+]
+
 
 def export_account_scores_to_csv(scores: list[AccountScore]) -> str:
     out = io.StringIO()
     w = csv.writer(out)
-    fields = [
-        "account_id",
-        "screen_name",
-        "score",
-        "follows_back",
-        "reply_count",
-        "retweet_count",
-        "mention_count",
-        "like_count",
-        "quote_count",
-        "user_link",
-        "category",
-        "is_muted",
-    ]
-    w.writerow(fields)
-    for s in scores:
-        w.writerow([getattr(s, f) for f in fields])
+    w.writerow(ACCOUNT_FIELDS)
+    w.writerows([[getattr(s, f) for f in ACCOUNT_FIELDS] for s in scores])
     return out.getvalue()
 
 
