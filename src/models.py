@@ -1,8 +1,5 @@
 from datetime import datetime
-
 from pydantic import BaseModel
-
-
 class Tweet(BaseModel):
     created_at: datetime
     full_text: str
@@ -24,8 +21,6 @@ class Tweet(BaseModel):
     mention_user_ids: list[str] = []
     reply_to_user_id: str | None = None
     retweeted_user_id: str | None = None
-
-
 class InteractionStats(BaseModel):
     top_replied: list[tuple[str, int]]
     top_retweeted: list[tuple[str, int]]
@@ -33,8 +28,6 @@ class InteractionStats(BaseModel):
     top_mentions: list[tuple[str, int]]
     total_replies: int
     total_retweets: int
-
-
 class TweetAnalysis(BaseModel):
     total_tweets: int
     avg_length: float
@@ -45,8 +38,6 @@ class TweetAnalysis(BaseModel):
     tweets_per_hour: dict[int, int]
     tweets_by_type: dict[str, int]
     word_freq: dict[str, int]
-
-
 class ScoringWeights(BaseModel):
     follower: int = 10
     reply: int = 3
@@ -54,24 +45,18 @@ class ScoringWeights(BaseModel):
     mention: int = 2
     like: int = 2
     quote: int = 4
-
-
 class AnalyticsLimits(BaseModel):
     tfidf_features: int = 20
     word_freq: int = 100
     top_stats: int = 10
     top_interests: int = 20
     mutuals: int = 20
-
-
 class FileConfig(BaseModel):
     tweets: str = "data/tweets.js"
     follower: str = "data/follower.js"
     following: str = "data/following.js"
     like: str = "data/like.js"
     mute: str = "data/mute.js"
-
-
 class AppConfig(BaseModel):
     input_file: str
     output_dir: str
@@ -83,15 +68,11 @@ class AppConfig(BaseModel):
     stop_words: list[str] = []
     weights: ScoringWeights = ScoringWeights()
     limits: AnalyticsLimits = AnalyticsLimits()
-
-
 class Like(BaseModel):
     tweet_id: str
     full_text: str
     expanded_url: str
     mentions: list[str] = []
-
-
 class AccountScore(BaseModel):
     account_id: str
     screen_name: str

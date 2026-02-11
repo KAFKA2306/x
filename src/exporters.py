@@ -1,8 +1,6 @@
 import csv
 import io
-
 from src.models import AccountScore, Tweet
-
 ACCOUNT_FIELDS = [
     "account_id",
     "screen_name",
@@ -17,16 +15,12 @@ ACCOUNT_FIELDS = [
     "category",
     "is_muted",
 ]
-
-
 def export_account_scores_to_csv(scores: list[AccountScore]) -> str:
     out = io.StringIO()
     w = csv.writer(out)
     w.writerow(ACCOUNT_FIELDS)
     w.writerows([[getattr(s, f) for f in ACCOUNT_FIELDS] for s in scores])
     return out.getvalue()
-
-
 def export_tweets_to_csv(tweets: list[Tweet]) -> str:
     out = io.StringIO()
     w = csv.writer(out)

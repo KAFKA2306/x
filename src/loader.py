@@ -2,19 +2,12 @@ import json
 import re
 from datetime import datetime
 from typing import Any
-
 from src.models import Like, Tweet
-
-
 def parse_archive(content: str) -> list[dict[str, Any]]:
     return json.loads(re.sub(r"window\.YTD\.\w+\.part0\s*=\s*", "", content))
-
-
 def clean_text(text: str) -> str:
     text = re.sub(r"\s+", " ", text).strip()
     return re.sub(r"http\S+", "", text)
-
-
 def load_tweets(path: str) -> list[Tweet]:
     with open(path, "r", encoding="utf-8") as f:
         data = parse_archive(f.read())
@@ -52,14 +45,10 @@ def load_tweets(path: str) -> list[Tweet]:
             )
         )
     return res
-
-
 def load_user_list(path: str) -> list[str]:
     with open(path, "r", encoding="utf-8") as f:
         data = parse_archive(f.read())
     return [i.get("follower", i.get("following", {})).get("accountId", "unknown") for i in data]
-
-
 def load_likes(path: str) -> list[Like]:
     with open(path, "r", encoding="utf-8") as f:
         data = parse_archive(f.read())
@@ -73,8 +62,6 @@ def load_likes(path: str) -> list[Like]:
         for i in data
         if "like" in i
     ]
-
-
 def load_mutes(path: str) -> set[str]:
     with open(path, "r", encoding="utf-8") as f:
         data = parse_archive(f.read())

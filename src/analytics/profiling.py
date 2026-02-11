@@ -1,9 +1,6 @@
 from collections import Counter
 from dataclasses import dataclass
-
 from src.models import AppConfig, Tweet
-
-
 @dataclass
 class UserProfile:
     total_tweets: int
@@ -19,8 +16,6 @@ class UserProfile:
     top_hashtags: list[tuple[str, int]]
     best_tweets: list[dict]
     monthly_trend: dict[str, int]
-
-
 def analyze_profile(tweets: list[Tweet], config: AppConfig) -> UserProfile:
     if not tweets:
         return UserProfile(
@@ -38,34 +33,26 @@ def analyze_profile(tweets: list[Tweet], config: AppConfig) -> UserProfile:
             best_tweets=[],
             monthly_trend={},
         )
-
     n = len(tweets)
     dates = sorted(t.created_at.date() for t in tweets)
     days_span = max((dates[-1] - dates[0]).days, 1)
-
     hours = Counter(t.created_at.hour for t in tweets)
     peak_hour = hours.most_common(1)[0][0] if hours else 0
-
     orig = sum(1 for t in tweets if t.is_original)
     rt = sum(1 for t in tweets if t.is_retweet)
     rp = sum(1 for t in tweets if t.is_reply)
-
     content_mix = {
         "original": round(orig / n * 100, 1),
         "retweet": round(rt / n * 100, 1),
         "reply": round(rp / n * 100, 1),
     }
-
     total_eng = sum(t.favorite_count + t.retweet_count for t in tweets)
     avg_eng = round(total_eng / n, 2)
-
     avg_chars = round(sum(t.char_count for t in tweets) / n, 1)
     avg_words = round(sum(t.word_count for t in tweets) / n, 1)
-
     mentions = sum(t.mention_count for t in tweets)
     mention_rate = round(mentions / n, 2)
     reply_rate = round(rp / n * 100, 1)
-
     all_words = []
     all_hashtags = []
     stop = set(config.stop_words)
@@ -76,11 +63,9 @@ def analyze_profile(tweets: list[Tweet], config: AppConfig) -> UserProfile:
             ]
             all_words.extend(words)
             all_hashtags.extend(t.hashtags)
-
     lim = config.limits.top_interests
     top_keywords = Counter(all_words).most_common(lim)
     top_hashtags = Counter(all_hashtags).most_common(lim)
-
     sorted_by_eng = sorted(tweets, key=lambda t: t.favorite_count + t.retweet_count, reverse=True)
     best = sorted_by_eng[:5]
     best_tweets = [
@@ -92,10 +77,8 @@ def analyze_profile(tweets: list[Tweet], config: AppConfig) -> UserProfile:
         }
         for t in best
     ]
-
     monthly = Counter(t.created_at.strftime("%Y-%m") for t in tweets)
     monthly_trend = dict(sorted(monthly.items()))
-
     return UserProfile(
         total_tweets=n,
         tweets_per_day=round(n / days_span, 2),
