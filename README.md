@@ -1,98 +1,71 @@
-# 🚀 Twitter(X) データ分析ツール
+# X archive analyzer
 
-![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
-![HTMX](https://img.shields.io/badge/HTMX-339933?style=for-the-badge&logo=htmx)
-![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+自分のXデータアーカイブをローカルのFastAPIアプリで読み込み、投稿・いいね・フォロー関係・交流履歴を集計するツールです。
 
-Twitter(X)のデータアーカイブを利用して、あなたの活動を多角的に分析・可視化するツールです。
-完全ローカル環境で動作するため、高速かつプライバシーも安心。外部APIへの送信は一切行いません。
+X公式は、データアーカイブにポスト、フォロワー、フォロー中アカウントなどを含むHTML/JSON形式のデータを提供すると説明しています。
+https://help.x.com/ja/managing-your-account/accessing-your-x-data
 
----
+## できること
 
-## ✨ 機能
+- 投稿数、投稿時間帯、投稿タイプ、頻出語を集計する
+- いいねをキーワードで分類し、TF-IDF + KMeansでクラスタリングする
+- フォロー/フォロワー集合と交流回数を集計する
+- 投稿時間帯ごとの過去の平均エンゲージメントを表示する
+- 低交流かつ相互フォローでないアカウント、高交流の相互フォローを一覧化する
+- 集計結果をCSVで出力する
 
-- **📊 包括的な分析 (Analytics)**
-    - **活動ヒートマップ**: 投稿アクティビティを日次・時間帯別・Githubスタイルの草グラフで可視化。
-    - **コンテンツ分析**: 頻出キーワードや興味関心を抽出してワードクラウド化（TF-IDF使用）。
-    - **投稿タイプ**: オリジナルツイート、リプライ、リツイートの比率を分析。
+表示するスコアや一覧は、このリポジトリの設定値と過去データから計算した指標です。将来のエンゲージメント、人物の重要性、フォロー解除の妥当性を保証するものではありません。
 
-- **⏰ 効率化インサイト (Efficiency)**
-    - **ベストな投稿時間**: 過去のデータから、エンゲージメント（いいね・RT）が得られやすい「最適な投稿時間帯」を提案します。
+## データとネットワーク境界
 
-- **👥 オーディエンス分析 (Audience Insights)**
-    - **関係性グラフ**: 相互フォロー、片思い、片思われの比率を視覚化（積み上げ棒グラフ）。
-    - **トップインタラクション**: 最も交流の多いユーザー（リプライ・RT数）をランキング表示。
+Pythonアプリは `config.yaml` で指定したローカルファイルを読み込みます。X APIへ投稿やフォロー操作を送る実装はありません。
 
-- **🧹 フォロー整理 (Follow Management)**
-    - **アンフォロー候補**: 長期間交流がなく、かつフォローバックされていないアカウントをリストアップ。
-    - **重要な相互フォロワー**: インタラクション頻度が高く、大切にすべきフォロワーを特定。CSVエクスポート対応。
+一方、現在のWeb UIはブラウザから Google Fonts、Tailwind CSS CDN、unpkg、jsDelivr の静的アセットを取得します。そのため、Web UI全体をオフライン動作とは扱いません。
 
-- **💻 モダンなWebダッシュボード**
-    - **FastAPI + HTMX**: 高速で快適な操作感のUI。
-    - **レスポンシブデザイン**: スマートフォンやタブレットでも閲覧可能。
+`config.yaml` の `data/tweets.js` などのパスはこのアプリの入力設定であり、Xが将来のアーカイブでも同じファイル名を保証するという意味ではありません。
 
----
+## セットアップ
 
-## 🛠️ インストール
-
-依存関係の管理には `uv` を使用します。
+Python 3.11以上と `uv` を使用します。
 
 ```bash
-# 依存関係のインストール
-uv sync
+uv sync --locked
 ```
 
----
+Xデータアーカイブから利用するファイルを配置し、必要なら `config.yaml` のパスを変更します。
 
-## 🚀 使い方
+```yaml
+files:
+  tweets: "data/tweets.js"
+  follower: "data/follower.js"
+  following: "data/following.js"
+  like: "data/like.js"
+```
 
-### Webダッシュボードの起動
+入力ファイルが存在しない項目は空データとして扱います。
 
-以下のコマンドを実行すると、分析サーバーが起動します。
+## 起動
 
 ```bash
 task dev
-# または
+```
+
+または:
+
+```bash
 uv run uvicorn src.web.app:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-ブラウザで **[http://localhost:8000](http://localhost:8000)** にアクセスして分析結果を確認してください。
+ブラウザで `http://localhost:8000` を開きます。
 
----
+## 検証
 
-## � 設定
+Pull Requestとmain pushではGitHub Actionsで次を確認します。
 
-`config.yaml` を編集し、Twitterアーカイブデータへのパスを指定してください。
-
-```yaml
-# config.yaml (例)
-files:
-  tweets: "data/tweets.js"      # 全ツイート履歴
-  follower: "data/follower.js"  # フォロワー一覧
-  following: "data/following.js" # フォロー中一覧
-  like: "data/like.js"          # いいね履歴
+```bash
+uv sync --locked
+uvx ruff check .
+uv run python -c "import src.web.app"
 ```
 
----
-
-## 📂 プロジェクト構成
-
-```
-.
-├── src/
-│   ├── analytics/      # 分析ロジック (オーディエンス, 興味関心, 推奨等)
-│   ├── web/            # Webアプリケーション (FastAPI + HTMX)
-│   ├── features.py     # 統計処理・特徴量抽出
-│   └── visualization.py # グラフ生成
-├── data/               # データディレクトリ (Twitterアーカイブ)
-├── output/             # 出力ディレクトリ (CSVレポート等)
-├── config.yaml         # 設定ファイル
-└── Taskfile.yaml       # タスクランナー定義
-```
-
----
-
-<p align="center">
-  <sub>Built with ❤️ by Antigravity. Minimalist, fast, and local-first.</sub>
-</p>
+実データを使ったブラウザE2Eテストは現在ありません。

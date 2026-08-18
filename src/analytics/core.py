@@ -1,17 +1,23 @@
 import re
 from collections import Counter, defaultdict
 from typing import Any
+
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
+
 from src.models import AppConfig, Tweet, TweetAnalysis
+
+
 def analyze_interests(texts: list[str], config: AppConfig) -> dict[str, Any]:
     txt = " ".join(texts)
     stop = set(config.stop_words)
     kw_words = [w for w in re.findall(r"\b\w{4,}\b", re.sub(r"@\w+", "", txt).lower()) if w not in stop]
     kw = Counter(kw_words)
-    ht = Counter(re.findall(r"
+    ht = Counter(re.findall(r"#(\w+)", txt))
     lim = config.limits.top_interests
     return {"top_hashtags": ht.most_common(lim), "top_keywords": kw.most_common(lim), "count": len(texts)}
+
+
 def analyze_tweets_core(tweets: list[Tweet], config: AppConfig) -> TweetAnalysis:
     df = pd.DataFrame([t.model_dump() for t in tweets])
     txts = [t.full_text for t in tweets]
@@ -21,6 +27,7 @@ def analyze_tweets_core(tweets: list[Tweet], config: AppConfig) -> TweetAnalysis
         top = sorted(zip(v.get_feature_names_out(), v_out), key=lambda x: x[1], reverse=True)
     else:
         top = []
+
     return TweetAnalysis(
         total_tweets=len(tweets),
         avg_length=df["char_count"].mean() if not df.empty else 0,
@@ -36,6 +43,8 @@ def analyze_tweets_core(tweets: list[Tweet], config: AppConfig) -> TweetAnalysis
         },
         word_freq=dict(Counter(" ".join(txts).split()).most_common(config.limits.word_freq)),
     )
+
+
 def analyze_graph_core(followers: list[str], following: list[str]) -> dict[str, Any]:
     fer, fing = set(followers), set(following)
     mut, fans, non = fing & fer, fer - fing, fing - fer
@@ -54,6 +63,8 @@ def analyze_graph_core(followers: list[str], following: list[str]) -> dict[str, 
         "non_followers_sample": list(non)[:10],
         "fans_sample": list(fans)[:10],
     }
+
+
 def analyze_efficiency_core(tweets: list[Tweet]) -> dict[str, dict[int, float]]:
     slots = defaultdict(lambda: defaultdict(lambda: [0, 0]))
     days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
