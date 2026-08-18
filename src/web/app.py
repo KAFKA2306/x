@@ -24,8 +24,8 @@ config = load_config()
 
 tweets = load_tweets(config.files.tweets) if os.path.exists(config.files.tweets) else []
 ans = analyze_tweets_core(tweets, config) if tweets else None
-fers = load_user_list(config.files.follower)
-fing = load_user_list(config.files.following)
+fers = load_user_list(config.files.follower) if os.path.exists(config.files.follower) else []
+fing = load_user_list(config.files.following) if os.path.exists(config.files.following) else []
 likes = load_likes(config.files.like) if os.path.exists(config.files.like) else []
 mutes = load_mutes(config.files.mute) if os.path.exists(config.files.mute) else set()
 
