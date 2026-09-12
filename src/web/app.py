@@ -1,8 +1,6 @@
-import os
-
 import uvicorn
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 
 from src.analytics.core import (
@@ -16,25 +14,38 @@ from src.analytics.profiling import analyze_profile
 from src.analytics.recommendations import RecommendationAnalytics, extract_interactions
 from src.config import load_config
 from src.exporters import export_account_scores_to_csv, export_tweets_to_csv
-from src.loader import load_likes, load_mutes, load_tweets, load_user_list
+from src.input_readiness import load_configured_inputs
 
 app = FastAPI()
 templates = Jinja2Templates(directory="src/web/templates")
 config = load_config()
+input_state = load_configured_inputs(config)
 
-tweets = load_tweets(config.files.tweets) if os.path.exists(config.files.tweets) else []
-ans = analyze_tweets_core(tweets, config) if tweets else None
-fers = load_user_list(config.files.follower) if os.path.exists(config.files.follower) else []
-fing = load_user_list(config.files.following) if os.path.exists(config.files.following) else []
-likes = load_likes(config.files.like) if os.path.exists(config.files.like) else []
-mutes = load_mutes(config.files.mute) if os.path.exists(config.files.mute) else set()
+tweets = input_state.data.get("tweets", []) if input_state.ready else []
+fers = input_state.data.get("follower", []) if input_state.ready else []
+fing = input_state.data.get("following", []) if input_state.ready else []
+likes = input_state.data.get("like", []) if input_state.ready else []
+mutes = input_state.data.get("mute", set()) if input_state.ready else set()
+ans = analyze_tweets_core(tweets, config) if input_state.ready and tweets else None
 
-if tweets:
+if input_state.ready and tweets:
     umap = {}
     ids_cnt, hts = extract_interactions(tweets, likes, umap, config)
     ra = RecommendationAnalytics(config, set(fers), set(fing), ids_cnt, umap, mutes)
 else:
     ra = None
+
+
+@app.middleware("http")
+async def require_ready_inputs(request: Request, call_next):
+    if request.url.path == "/readiness" or input_state.ready:
+        return await call_next(request)
+    return JSONResponse(input_state.as_dict(), status_code=503)
+
+
+@app.get("/readiness")
+async def readiness():
+    return JSONResponse(input_state.as_dict(), status_code=200 if input_state.ready else 503)
 
 
 @app.get("/", response_class=HTMLResponse)
