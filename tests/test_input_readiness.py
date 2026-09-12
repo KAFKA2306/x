@@ -26,11 +26,14 @@ class InputReadinessTests(unittest.TestCase):
     def write_archive(self, path: Path, items) -> None:
         path.write_text("window.YTD.test.part0 = " + json.dumps(items), encoding="utf-8")
 
+    def status_for(self, state, name: str) -> str:
+        return next(item.status for item in state.inputs if item.name == name)
+
     def test_required_tweets_missing_fails_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             state = load_configured_inputs(self.make_config(Path(tmp)))
         self.assertFalse(state.ready)
-        self.assertEqual("missing-required", next(item.status for item in state.inputs if item.name == "tweets"))
+        self.assertEqual("missing-required", self.status_for(state, "tweets"))
 
     def test_present_empty_required_archive_is_valid_empty(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -38,7 +41,7 @@ class InputReadinessTests(unittest.TestCase):
             self.write_archive(root / "tweets.js", [])
             state = load_configured_inputs(self.make_config(root))
         self.assertTrue(state.ready)
-        self.assertEqual("valid-empty", next(item.status for item in state.inputs if item.name == "tweets"))
+        self.assertEqual("valid-empty", self.status_for(state, "tweets"))
         self.assertEqual([], state.data["tweets"])
 
     def test_malformed_archive_fails_closed(self):
@@ -47,7 +50,15 @@ class InputReadinessTests(unittest.TestCase):
             (root / "tweets.js").write_text("window.YTD.test.part0 = {", encoding="utf-8")
             state = load_configured_inputs(self.make_config(root))
         self.assertFalse(state.ready)
-        self.assertEqual("invalid", next(item.status for item in state.inputs if item.name == "tweets"))
+        self.assertEqual("invalid", self.status_for(state, "tweets"))
+
+    def test_invalid_archive_schema_fails_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "tweets.js").write_text("window.YTD.test.part0 = {}", encoding="utf-8")
+            state = load_configured_inputs(self.make_config(root))
+        self.assertFalse(state.ready)
+        self.assertEqual("invalid", self.status_for(state, "tweets"))
 
     def test_valid_nonempty_archive_is_ready_and_loaded(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -66,7 +77,7 @@ class InputReadinessTests(unittest.TestCase):
             )
             state = load_configured_inputs(self.make_config(root))
         self.assertTrue(state.ready)
-        self.assertEqual("ready", next(item.status for item in state.inputs if item.name == "tweets"))
+        self.assertEqual("ready", self.status_for(state, "tweets"))
         self.assertEqual(1, len(state.data["tweets"]))
 
     def test_optional_missing_does_not_change_required_readiness(self):
