@@ -40,9 +40,20 @@ files:
   follower: "data/follower.js"
   following: "data/following.js"
   like: "data/like.js"
+
+required_files:
+  - tweets
 ```
 
-入力ファイルが存在しない項目は空データとして扱います。
+`required_files` に指定した入力が欠損または不正なら、アプリは分析結果を生成せず non-ready として扱います。存在する空アーカイブは `valid-empty`、指定されていない任意入力の欠損は `optional-missing` です。
+
+起動前に同じ判定をCLIで確認できます。
+
+```bash
+uv run python -m src.input_readiness
+```
+
+Webでは `/readiness` が同じ判定を返し、non-ready の場合は HTTP 503 になります。
 
 ## 起動
 
@@ -65,6 +76,7 @@ Pull Requestとmain pushではGitHub Actionsで次を確認します。
 ```bash
 uv sync --locked
 uvx ruff check .
+uv run python -m unittest discover -s tests -v
 uv run python -c "import src.web.app"
 ```
 

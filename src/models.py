@@ -78,6 +78,7 @@ class AppConfig(BaseModel):
     model_name: str
     preset: str = "default"
     files: FileConfig = FileConfig()
+    required_files: list[str] = ["tweets"]
     vrchat_keywords: list[str] = []
     photo_keywords: list[str] = []
     stop_words: list[str] = []

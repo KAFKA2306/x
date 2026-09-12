@@ -7,7 +7,10 @@ from src.models import Like, Tweet
 
 
 def parse_archive(content: str) -> list[dict[str, Any]]:
-    return json.loads(re.sub(r"window\.YTD\.\w+\.part0\s*=\s*", "", content))
+    data = json.loads(re.sub(r"window\.YTD\.\w+\.part0\s*=\s*", "", content))
+    if not isinstance(data, list) or any(not isinstance(item, dict) for item in data):
+        raise ValueError("archive root must be a list of objects")
+    return data
 
 
 def clean_text(text: str) -> str:
