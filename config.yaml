@@ -9,6 +9,9 @@ files:
   following: "data/following.js"
   like: "data/like.js"
 
+required_files:
+  - tweets
+
 vrchat_keywords:
   - "vrchat"
   - "vrc"
