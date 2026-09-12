@@ -70,13 +70,18 @@ def load_configured_inputs(config: AppConfig) -> InputReadiness:
             value = loader(path)
         except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError) as exc:
             statuses.append(
-                InputStatus(name=name, path=path, required=is_required, status="invalid", error=f"{type(exc).__name__}: {exc}")
+                InputStatus(
+                    name=name,
+                    path=path,
+                    required=is_required,
+                    status="invalid",
+                    error=f"{type(exc).__name__}: {exc}",
+                )
             )
             continue
         data[name] = value
-        statuses.append(
-            InputStatus(name=name, path=path, required=is_required, status="valid-empty" if len(value) == 0 else "ready")
-        )
+        status = "valid-empty" if len(value) == 0 else "ready"
+        statuses.append(InputStatus(name=name, path=path, required=is_required, status=status))
 
     ready = not any(item.status in {"missing-required", "invalid", "invalid-config"} for item in statuses)
     return InputReadiness(ready=ready, inputs=statuses, data=data)
