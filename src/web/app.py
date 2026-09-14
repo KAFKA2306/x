@@ -1,8 +1,6 @@
-import os
-
 import uvicorn
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 
 from src.analytics.core import (
@@ -16,34 +14,69 @@ from src.analytics.profiling import analyze_profile
 from src.analytics.recommendations import RecommendationAnalytics, extract_interactions
 from src.config import load_config
 from src.exporters import export_account_scores_to_csv, export_tweets_to_csv
-from src.loader import load_likes, load_mutes, load_tweets, load_user_list
+from src.loader import load_archive_inputs
 
 app = FastAPI()
 templates = Jinja2Templates(directory="src/web/templates")
 config = load_config()
+archive_inputs = load_archive_inputs(config)
 
-tweets = load_tweets(config.files.tweets) if os.path.exists(config.files.tweets) else []
+tweets = archive_inputs.tweets if archive_inputs.analysis_ready else []
+fers = archive_inputs.follower if archive_inputs.analysis_ready else []
+fing = archive_inputs.following if archive_inputs.analysis_ready else []
+likes = archive_inputs.like if archive_inputs.analysis_ready else []
+mutes = archive_inputs.mute if archive_inputs.analysis_ready else set()
 ans = analyze_tweets_core(tweets, config) if tweets else None
-fers = load_user_list(config.files.follower) if os.path.exists(config.files.follower) else []
-fing = load_user_list(config.files.following) if os.path.exists(config.files.following) else []
-likes = load_likes(config.files.like) if os.path.exists(config.files.like) else []
-mutes = load_mutes(config.files.mute) if os.path.exists(config.files.mute) else set()
 
 if tweets:
     umap = {}
     ids_cnt, hts = extract_interactions(tweets, likes, umap, config)
     ra = RecommendationAnalytics(config, set(fers), set(fing), ids_cnt, umap, mutes)
 else:
+    hts = None
     ra = None
+
+
+def _readiness_payload() -> dict:
+    return {
+        "analysis_ready": archive_inputs.analysis_ready,
+        "inputs": {
+            name: {
+                "path": item.path,
+                "required": item.required,
+                "status": item.status.value,
+                "error": item.error,
+            }
+            for name, item in archive_inputs.readiness.items()
+        },
+    }
+
+
+def _not_ready_response():
+    if archive_inputs.analysis_ready:
+        return None
+    return JSONResponse(_readiness_payload(), status_code=503)
+
+
+@app.get("/readiness")
+async def readiness():
+    status_code = 200 if archive_inputs.analysis_ready else 503
+    return JSONResponse(_readiness_payload(), status_code=status_code)
 
 
 @app.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request):
+    blocked = _not_ready_response()
+    if blocked:
+        return blocked
     return templates.TemplateResponse("dashboard.html", {"request": request, "analysis": ans, "config": config})
 
 
 @app.get("/audience", response_class=HTMLResponse)
 async def get_audience_insights(request: Request):
+    blocked = _not_ready_response()
+    if blocked:
+        return blocked
     if not ra:
         return HTMLResponse("<p>No data available</p>")
     from src.models import InteractionStats
@@ -64,6 +97,9 @@ async def get_audience_insights(request: Request):
 
 @app.get("/efficiency", response_class=HTMLResponse)
 async def get_efficiency_heatmap(request: Request):
+    blocked = _not_ready_response()
+    if blocked:
+        return blocked
     if not tweets:
         return HTMLResponse("<p>No data available</p>")
     return templates.TemplateResponse(
@@ -74,6 +110,9 @@ async def get_efficiency_heatmap(request: Request):
 
 @app.get("/graph", response_class=HTMLResponse)
 async def get_graph_stats(request: Request):
+    blocked = _not_ready_response()
+    if blocked:
+        return blocked
     return templates.TemplateResponse(
         "partials/graph.html", {"request": request, "graph": analyze_graph_core(fers, fing)}
     )
@@ -81,6 +120,9 @@ async def get_graph_stats(request: Request):
 
 @app.get("/interests", response_class=HTMLResponse)
 async def get_interests_stats(request: Request):
+    blocked = _not_ready_response()
+    if blocked:
+        return blocked
     if not likes and not tweets:
         return HTMLResponse("<p>No data available</p>")
     return templates.TemplateResponse(
@@ -101,6 +143,9 @@ async def get_interests_stats(request: Request):
 
 @app.get("/recommendations", response_class=HTMLResponse)
 async def get_recommendations(request: Request):
+    blocked = _not_ready_response()
+    if blocked:
+        return blocked
     if not ra:
         return HTMLResponse("<p>No data available</p>")
     return templates.TemplateResponse(
@@ -120,26 +165,47 @@ def csv_response(data: str, filename: str):
 
 @app.get("/recommendations/download")
 async def dl_rec():
+    blocked = _not_ready_response()
+    if blocked:
+        return blocked
+    if not ra:
+        return HTMLResponse("<p>No data available</p>", status_code=409)
     return csv_response(export_account_scores_to_csv(ra.get_unfollow_candidates()), "unfollow.csv")
 
 
 @app.get("/recommendations/download_mutuals")
 async def dl_mut():
+    blocked = _not_ready_response()
+    if blocked:
+        return blocked
+    if not ra:
+        return HTMLResponse("<p>No data available</p>", status_code=409)
     return csv_response(export_account_scores_to_csv(ra.get_valuable_mutuals(0)), "mutuals.csv")
 
 
 @app.get("/tweets/download")
 async def dl_tw():
+    blocked = _not_ready_response()
+    if blocked:
+        return blocked
     return csv_response(export_tweets_to_csv(tweets), "tweets.csv")
 
 
 @app.get("/interactions/download")
 async def dl_int():
+    blocked = _not_ready_response()
+    if blocked:
+        return blocked
+    if not ra:
+        return HTMLResponse("<p>No data available</p>", status_code=409)
     return csv_response(export_account_scores_to_csv(ra.get_all()), "interactions.csv")
 
 
 @app.get("/profile", response_class=HTMLResponse)
 async def get_profile(request: Request):
+    blocked = _not_ready_response()
+    if blocked:
+        return blocked
     if not tweets:
         return HTMLResponse("<p>No data available</p>")
     return templates.TemplateResponse(
@@ -149,6 +215,9 @@ async def get_profile(request: Request):
 
 @app.get("/likes", response_class=HTMLResponse)
 async def get_likes_analysis(request: Request):
+    blocked = _not_ready_response()
+    if blocked:
+        return blocked
     if not likes:
         return HTMLResponse("<p>No data available</p>")
     return templates.TemplateResponse(
@@ -158,6 +227,9 @@ async def get_likes_analysis(request: Request):
 
 @app.get("/likes/clusters", response_class=HTMLResponse)
 async def get_likes_clusters(request: Request):
+    blocked = _not_ready_response()
+    if blocked:
+        return blocked
     if not likes:
         return HTMLResponse("<p>No data available</p>")
     return templates.TemplateResponse("partials/clusters.html", {"request": request, "clusters": cluster_likes(likes)})
