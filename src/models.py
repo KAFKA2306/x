@@ -72,12 +72,18 @@ class FileConfig(BaseModel):
     mute: str = "data/mute.js"
 
 
+class ArchiveInputPolicy(BaseModel):
+    required: list[str] = ["tweets"]
+    optional: list[str] = ["follower", "following", "like", "mute"]
+
+
 class AppConfig(BaseModel):
     input_file: str
     output_dir: str
     model_name: str
     preset: str = "default"
     files: FileConfig = FileConfig()
+    archive_inputs: ArchiveInputPolicy = ArchiveInputPolicy()
     vrchat_keywords: list[str] = []
     photo_keywords: list[str] = []
     stop_words: list[str] = []
