@@ -8,6 +8,16 @@ files:
   follower: "data/follower.js"
   following: "data/following.js"
   like: "data/like.js"
+  mute: "data/mute.js"
+
+archive_inputs:
+  required:
+    - tweets
+  optional:
+    - follower
+    - following
+    - like
+    - mute
 
 vrchat_keywords:
   - "vrchat"
