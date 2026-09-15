@@ -8,7 +8,14 @@ from src.models import AppConfig, FileConfig
 
 class InputReadinessTest(unittest.TestCase):
     def config(self, root: Path) -> AppConfig:
-        return AppConfig(input_file="unused", output_dir="unused", model_name="unused", files=FileConfig(tweets=str(root / "tweets.js"), follower=str(root / "follower.js"), following=str(root / "following.js"), like=str(root / "like.js"), mute=str(root / "mute.js")))
+        files = FileConfig(
+            tweets=str(root / "tweets.js"),
+            follower=str(root / "follower.js"),
+            following=str(root / "following.js"),
+            like=str(root / "like.js"),
+            mute=str(root / "mute.js"),
+        )
+        return AppConfig(input_file="unused", output_dir="unused", model_name="unused", files=files)
 
     def test_required_tweets_missing_fails_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -35,7 +42,10 @@ class InputReadinessTest(unittest.TestCase):
     def test_valid_nonempty_tweets_is_ready(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            payload = '[{"tweet":{"created_at":"Mon Jan 01 00:00:00 +0000 2024","full_text":"hello","entities":{}}}]'
+            payload = (
+                '[{"tweet":{"created_at":"Mon Jan 01 00:00:00 +0000 2024",'
+                '"full_text":"hello","entities":{}}}]'
+            )
             (root / "tweets.js").write_text(payload, encoding="utf-8")
             states = evaluate_inputs(self.config(root))
             self.assertEqual(states["tweets"].status, "ready")
