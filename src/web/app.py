@@ -1,35 +1,36 @@
-import os
-
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 
-from src.analytics.core import (
-    analyze_efficiency_core,
-    analyze_graph_core,
-    analyze_interests,
-    analyze_tweets_core,
-)
+from src.analytics.core import analyze_efficiency_core, analyze_graph_core, analyze_interests, analyze_tweets_core
 from src.analytics.likes import analyze_likes, cluster_likes
 from src.analytics.profiling import analyze_profile
 from src.analytics.recommendations import RecommendationAnalytics, extract_interactions
 from src.config import load_config
 from src.exporters import export_account_scores_to_csv, export_tweets_to_csv
-from src.loader import load_likes, load_mutes, load_tweets, load_user_list
+from src.input_readiness import evaluate_inputs, required_inputs_ready
 
 app = FastAPI()
 templates = Jinja2Templates(directory="src/web/templates")
 config = load_config()
+input_states = evaluate_inputs(config)
+analysis_ready = required_inputs_ready(input_states)
 
-tweets = load_tweets(config.files.tweets) if os.path.exists(config.files.tweets) else []
-ans = analyze_tweets_core(tweets, config) if tweets else None
-fers = load_user_list(config.files.follower) if os.path.exists(config.files.follower) else []
-fing = load_user_list(config.files.following) if os.path.exists(config.files.following) else []
-likes = load_likes(config.files.like) if os.path.exists(config.files.like) else []
-mutes = load_mutes(config.files.mute) if os.path.exists(config.files.mute) else set()
 
-if tweets:
+def _data(name, empty):
+    state = input_states[name]
+    return state.data if state.data is not None else empty
+
+
+tweets = _data("tweets", []) if analysis_ready else []
+fers = _data("follower", [])
+fing = _data("following", [])
+likes = _data("like", [])
+mutes = _data("mute", set())
+ans = analyze_tweets_core(tweets, config) if tweets and analysis_ready else None
+
+if tweets and analysis_ready:
     umap = {}
     ids_cnt, hts = extract_interactions(tweets, likes, umap, config)
     ra = RecommendationAnalytics(config, set(fers), set(fing), ids_cnt, umap, mutes)
@@ -37,8 +38,19 @@ else:
     ra = None
 
 
+def _not_ready():
+    failures = [s for s in input_states.values() if s.required and not s.ready]
+    if not failures:
+        return None
+    details = "; ".join(f"{s.name}: {s.status} ({s.path})" for s in failures)
+    return HTMLResponse(f"<p>Archive inputs not ready: {details}</p>", status_code=503)
+
+
 @app.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request):
+    blocked = _not_ready()
+    if blocked:
+        return blocked
     return templates.TemplateResponse("dashboard.html", {"request": request, "analysis": ans, "config": config})
 
 
@@ -47,18 +59,9 @@ async def get_audience_insights(request: Request):
     if not ra:
         return HTMLResponse("<p>No data available</p>")
     from src.models import InteractionStats
-
     def map_n(counts):
         return [(ra.account_map.get(aid, aid), c) for aid, c in counts]
-
-    stats = InteractionStats(
-        top_replied=map_n(ra.counts["reply"].most_common(config.limits.top_stats)),
-        top_retweeted=map_n(ra.counts["retweet"].most_common(config.limits.top_stats)),
-        top_hashtags=hts.most_common(config.limits.top_stats),
-        top_mentions=map_n(ra.counts["mention"].most_common(config.limits.top_stats)),
-        total_replies=sum(ra.counts["reply"].values()),
-        total_retweets=sum(ra.counts["retweet"].values()),
-    )
+    stats = InteractionStats(top_replied=map_n(ra.counts["reply"].most_common(config.limits.top_stats)), top_retweeted=map_n(ra.counts["retweet"].most_common(config.limits.top_stats)), top_hashtags=hts.most_common(config.limits.top_stats), top_mentions=map_n(ra.counts["mention"].most_common(config.limits.top_stats)), total_replies=sum(ra.counts["reply"].values()), total_retweets=sum(ra.counts["retweet"].values()))
     return templates.TemplateResponse("partials/audience.html", {"request": request, "stats": stats})
 
 
@@ -66,95 +69,59 @@ async def get_audience_insights(request: Request):
 async def get_efficiency_heatmap(request: Request):
     if not tweets:
         return HTMLResponse("<p>No data available</p>")
-    return templates.TemplateResponse(
-        "partials/efficiency.html",
-        {"request": request, "heatmap": analyze_efficiency_core(tweets)},
-    )
+    return templates.TemplateResponse("partials/efficiency.html", {"request": request, "heatmap": analyze_efficiency_core(tweets)})
 
 
 @app.get("/graph", response_class=HTMLResponse)
 async def get_graph_stats(request: Request):
-    return templates.TemplateResponse(
-        "partials/graph.html", {"request": request, "graph": analyze_graph_core(fers, fing)}
-    )
+    return templates.TemplateResponse("partials/graph.html", {"request": request, "graph": analyze_graph_core(fers, fing)})
 
 
 @app.get("/interests", response_class=HTMLResponse)
 async def get_interests_stats(request: Request):
     if not likes and not tweets:
         return HTMLResponse("<p>No data available</p>")
-    return templates.TemplateResponse(
-        "partials/interests.html",
-        {
-            "request": request,
-            "likes": analyze_interests([lk.full_text for lk in likes], config) if likes else None,
-            "tweets": {
-                "original": analyze_interests([t.full_text for t in tweets if t.is_original], config),
-                "retweets": analyze_interests([t.full_text for t in tweets if t.is_retweet], config),
-                "replies": analyze_interests([t.full_text for t in tweets if t.is_reply], config),
-            }
-            if tweets
-            else None,
-        },
-    )
+    return templates.TemplateResponse("partials/interests.html", {"request": request, "likes": analyze_interests([lk.full_text for lk in likes], config) if likes else None, "tweets": {"original": analyze_interests([t.full_text for t in tweets if t.is_original], config), "retweets": analyze_interests([t.full_text for t in tweets if t.is_retweet], config), "replies": analyze_interests([t.full_text for t in tweets if t.is_reply], config)} if tweets else None})
 
 
 @app.get("/recommendations", response_class=HTMLResponse)
 async def get_recommendations(request: Request):
     if not ra:
         return HTMLResponse("<p>No data available</p>")
-    return templates.TemplateResponse(
-        "partials/recommendations.html",
-        {
-            "request": request,
-            "candidates": ra.get_unfollow_candidates(),
-            "mutuals": ra.get_valuable_mutuals(),
-        },
-    )
+    return templates.TemplateResponse("partials/recommendations.html", {"request": request, "candidates": ra.get_unfollow_candidates(), "mutuals": ra.get_valuable_mutuals()})
 
 
 def csv_response(data: str, filename: str):
-    headers = {"Content-Disposition": f"attachment; filename={filename}"}
-    return PlainTextResponse(data, media_type="text/csv", headers=headers)
+    return PlainTextResponse(data, media_type="text/csv", headers={"Content-Disposition": f"attachment; filename={filename}"})
 
 
 @app.get("/recommendations/download")
 async def dl_rec():
     return csv_response(export_account_scores_to_csv(ra.get_unfollow_candidates()), "unfollow.csv")
 
-
 @app.get("/recommendations/download_mutuals")
 async def dl_mut():
     return csv_response(export_account_scores_to_csv(ra.get_valuable_mutuals(0)), "mutuals.csv")
-
 
 @app.get("/tweets/download")
 async def dl_tw():
     return csv_response(export_tweets_to_csv(tweets), "tweets.csv")
 
-
 @app.get("/interactions/download")
 async def dl_int():
     return csv_response(export_account_scores_to_csv(ra.get_all()), "interactions.csv")
-
 
 @app.get("/profile", response_class=HTMLResponse)
 async def get_profile(request: Request):
     if not tweets:
         return HTMLResponse("<p>No data available</p>")
-    return templates.TemplateResponse(
-        "partials/profile.html", {"request": request, "profile": analyze_profile(tweets, config)}
-    )
-
+    return templates.TemplateResponse("partials/profile.html", {"request": request, "profile": analyze_profile(tweets, config)})
 
 @app.get("/likes", response_class=HTMLResponse)
 async def get_likes_analysis(request: Request):
     if not likes:
         return HTMLResponse("<p>No data available</p>")
-    return templates.TemplateResponse(
-        "partials/likes.html", {"request": request, "analysis": analyze_likes(likes, config)}
-    )
-
+    return templates.TemplateResponse("partials/likes.html", {"request": request, "analysis": analyze_likes(likes, config)})
 
 @app.get("/likes/clusters", response_class=HTMLResponse)
 async def get_likes_clusters(request: Request):
