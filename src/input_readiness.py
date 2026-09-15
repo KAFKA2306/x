@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Generic, TypeVar
 
-from src.models import AppConfig
 from src.loader import load_likes, load_mutes, load_tweets, load_user_list
+from src.models import AppConfig
 
 T = TypeVar("T")
 
