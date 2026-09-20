@@ -33,7 +33,7 @@ plugins {
 __ROOT__
 
 cat > /work/gradle.properties <<'__PROPS__'
-org.gradle.jvmargs=-Xmx384m -XX:MaxMetaspaceSize=192m -Dfile.encoding=UTF-8
+org.gradle.jvmargs=-Xmx320m -XX:MaxMetaspaceSize=192m -Dfile.encoding=UTF-8
 org.gradle.workers.max=1
 org.gradle.parallel=false
 org.gradle.daemon=false
@@ -853,6 +853,7 @@ cat > "/work/KafXClean.user.js" <<'__KAFX_V185_9__'
 __KAFX_V185_9__
 
 export ANDROID_KEYSTORE_PATH=/work/release.keystore
+export GRADLE_OPTS="-Xmx320m -XX:MaxMetaspaceSize=192m -Dfile.encoding=UTF-8"
 cd /work
 node --check app/src/main/assets/filter.js
 node --check KafXClean.user.js
