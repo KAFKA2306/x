@@ -1,0 +1,19 @@
+FROM ghcr.io/cirruslabs/android-sdk:36 AS build
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends nodejs curl unzip ca-certificates coreutils python3 \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -fL --retry 3 https://services.gradle.org/distributions/gradle-9.6.0-bin.zip -o /tmp/gradle.zip \
+    && unzip -q /tmp/gradle.zip -d /opt \
+    && rm /tmp/gradle.zip
+COPY kafxclean-dist/build-v186-unsigned.sh /build-v186-unsigned.sh
+RUN chmod +x /build-v186-unsigned.sh && /build-v186-unsigned.sh
+
+FROM ghcr.io/cirruslabs/android-sdk:36
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends python3 coreutils \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=build /out/KafXClean-v1.8.6-unsigned.apk /unsigned/KafXClean-v1.8.6-unsigned.apk
+COPY kafxclean-dist/sign-v186-runtime.sh /sign-v186-runtime.sh
+RUN chmod +x /sign-v186-runtime.sh
+EXPOSE 8000
+CMD ["/sign-v186-runtime.sh"]
