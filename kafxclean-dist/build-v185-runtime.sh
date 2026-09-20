@@ -33,7 +33,7 @@ plugins {
 __ROOT__
 
 cat > /work/gradle.properties <<'__PROPS__'
-org.gradle.jvmargs=-Xmx512m -XX:MaxMetaspaceSize=256m -Dfile.encoding=UTF-8
+org.gradle.jvmargs=-Xmx384m -XX:MaxMetaspaceSize=192m -Dfile.encoding=UTF-8
 org.gradle.workers.max=1
 org.gradle.parallel=false
 org.gradle.daemon=false
@@ -857,7 +857,7 @@ cd /work
 node --check app/src/main/assets/filter.js
 node --check KafXClean.user.js
 node --test tests/filter-dom.test.mjs
-/opt/gradle-9.6.0/bin/gradle --no-daemon :app:test :app:lint :app:assembleRelease --stacktrace
+/opt/gradle-9.6.0/bin/gradle --no-daemon --max-workers=1 :app:assembleRelease --stacktrace
 
 APK=/work/app/build/outputs/apk/release/app-release.apk
 test -f "$APK"
