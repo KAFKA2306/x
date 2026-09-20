@@ -7,4 +7,6 @@ RUN chmod +x /build-selfcontained.sh && /build-selfcontained.sh
 FROM python:3.12-alpine
 WORKDIR /srv
 COPY --from=build /out/ /srv/
+COPY kafxclean-dist/make-chunks.py /make-chunks.py
+RUN python /make-chunks.py
 CMD ["sh","-c","python -m http.server 8000 --bind 0.0.0.0 --directory /srv"]
