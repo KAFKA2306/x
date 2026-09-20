@@ -33,7 +33,10 @@ plugins {
 __ROOT__
 
 cat > /work/gradle.properties <<'__PROPS__'
-org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+org.gradle.jvmargs=-Xmx512m -XX:MaxMetaspaceSize=256m -Dfile.encoding=UTF-8
+org.gradle.workers.max=1
+org.gradle.parallel=false
+org.gradle.daemon=false
 android.useAndroidX=true
 android.nonTransitiveRClass=true
 __PROPS__
