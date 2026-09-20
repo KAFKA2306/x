@@ -9,4 +9,4 @@ WORKDIR /srv
 COPY --from=build /out/ /srv/
 COPY kafxclean-dist/make-chunks.py /make-chunks.py
 RUN python /make-chunks.py
-CMD ["sh","-c","python -m http.server 8000 --bind 0.0.0.0 --directory /srv"]
+CMD ["sh","-c","python -m http.server 8080 --bind 0.0.0.0 --directory /srv"]
